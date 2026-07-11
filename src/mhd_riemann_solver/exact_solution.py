@@ -82,8 +82,8 @@ def _solve_wave(
         gamma=gamma,
     )
     c_upstream = c_fast_upstream if wave_family == WaveFamily.Fast else c_slow_upstream
-    ## a pressure rise downstream is a compression, solved as a shock; a drop is
-    ## an isentropic expansion, solved as a rarefaction
+    ## pressure downstream > upstream -> compression (shock);
+    ## pressure upstream > downstream -> isentropic expansion (rarefaction)
     if pressure_downstream > upstream_state.pressure:
         downstream_state, shock_speed = solve_shock.solve_shock(
             upstream_state=upstream_state,
