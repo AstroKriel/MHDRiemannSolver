@@ -173,12 +173,18 @@ def as_conserved(
 
 def as_primitive(
     *,
-    conserved: ConservedVector,
+    conserved_vector: ConservedVector,
     magnetic_field_normal: float,
     gamma: float,
 ) -> PrimitiveState:
-    """Return `conserved` resolved to its primitive-variable representation."""
-    density, momentum_0, momentum_1, momentum_2, magnetic_field_transverse_1, magnetic_field_transverse_2, energy = conserved
+    """Return `conserved_vector` resolved to its primitive-variable representation."""
+    density = conserved_vector[0]
+    momentum_0 = conserved_vector[1]
+    momentum_1 = conserved_vector[2]
+    momentum_2 = conserved_vector[3]
+    magnetic_field_transverse_1 = conserved_vector[4]
+    magnetic_field_transverse_2 = conserved_vector[5]
+    energy = conserved_vector[6]
     velocity_normal = momentum_0 / density
     velocity_transverse_1 = momentum_1 / density
     velocity_transverse_2 = momentum_2 / density

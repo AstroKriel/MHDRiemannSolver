@@ -106,13 +106,13 @@ class TestConservedPrimitive_RoundTrip(unittest.TestCase):
     def test_as_conserved_and_back_recovers_state(
         self,
     ):
-        conserved = mhd_state.as_conserved(
+        conserved_vector = mhd_state.as_conserved(
             state=_LEFT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
         )
         recovered = mhd_state.as_primitive(
-            conserved=conserved,
+            conserved_vector=conserved_vector,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
         )
