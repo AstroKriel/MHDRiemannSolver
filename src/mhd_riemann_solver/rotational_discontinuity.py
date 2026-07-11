@@ -38,18 +38,11 @@ def apply_rotation(
 ) -> PrimitiveState:
     """
     Apply a rotational discontinuity to `upstream`, rotating its transverse field
-    by `angle` radians. `sign` selects which of the two characteristic branches
-    this discontinuity propagates along, in the lab frame:
-    `shock_speed = upstream.velocity_normal - sign * magnetic_field_normal / sqrt(upstream.density)`.
-    Whether a given `sign` is the "left" or "right" rotational discontinuity in a
-    particular Riemann fan depends on the sign of `magnetic_field_normal` itself;
-    callers building a full wave fan must pick `sign` to match the eigenvalue
-    ordering `u - |bx|/sqrt(rho) < ... < u + |bx|/sqrt(rho)`, not assume a fixed sign.
+    by `angle` radians; density, pressure, and normal velocity are preserved.
 
-    Density, pressure, and normal velocity are preserved (this discontinuity carries
-    no density jump); the transverse velocity shifts in lockstep with the transverse
-    field, `delta_v_t = sign * delta_b_t / sqrt(rho)`, which is what makes a rotation
-    of any angle an exact solution of the jump conditions.
+    `sign` selects which characteristic branch this propagates along; whether a
+    given `sign` is the "left" or "right" discontinuity in a wave fan depends on
+    the sign of `magnetic_field_normal`, not a fixed convention.
     """
     new_magnetic_field_transverse_1, new_magnetic_field_transverse_2 = rotate_transverse_field(
         magnetic_field_transverse_1=upstream.magnetic_field_transverse_1,

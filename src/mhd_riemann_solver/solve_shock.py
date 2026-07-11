@@ -79,17 +79,17 @@ def solve_shock(
     initial_relative_speed_guess: float,
 ) -> tuple[PrimitiveState, float]:
     """
-    Solve the MHD shock jump conditions for the downstream state given `upstream`
-    and a target downstream pressure `pressure_downstream`, by root-finding the
-    mass flux and downstream density that satisfy normal-momentum and energy
-    conservation.
+    Solve the MHD shock jump conditions for the downstream state, root-finding
+    the mass flux and downstream density that satisfy normal-momentum and
+    energy conservation.
 
-    `initial_relative_speed_guess` seeds the search: the upstream normal speed
-    relative to the shock, `velocity_normal - shock_speed`. Use `+c_fast`/`+c_slow`
-    when `upstream` sits on the left of this wave in the Riemann fan (e.g. the L
-    state feeding the leftmost wave), `-c_fast`/`-c_slow` when it sits on the right
-    (e.g. the R state feeding the rightmost wave). Its sign fixes which physical
-    shock branch the root-find converges to.
+    Parameters
+    ---
+    - `initial_relative_speed_guess`:
+        Seeds the search: the upstream normal speed relative to the shock. Use
+        `+c_fast`/`+c_slow` if `upstream` is the left state of this wave,
+        `-c_fast`/`-c_slow` if it's the right state; the sign fixes which shock
+        branch is found.
     """
     initial_mass_flux = upstream.density * initial_relative_speed_guess
     initial_density_downstream = upstream.density * (pressure_downstream / upstream.pressure) ** (1.0 / gamma)

@@ -186,18 +186,11 @@ def solve_riemann_problem(
     gamma: float,
 ) -> RiemannSolution:
     """
-    Solve the full 7-wave 1D ideal-MHD Riemann problem by root-finding the 5
-    unknowns that pin down the fan: `pressure_2`/`pressure_7` (post-fast-wave
-    pressures on the left/right), `pressure_star` (the shared pressure at the
-    contact), and `psi_left`/`psi_right` (the two rotational-discontinuity
-    rotation angles). Whether each fast/slow wave turns out to be a shock or a
-    rarefaction falls out of the solve; it is not assumed up front (see `_solve_wave`).
-
-    The two rotational-discontinuity `sign`s (see `rotational_discontinuity.
-    apply_rotation`) are fixed by the eigenvalue ordering `u - |bx|/sqrt(rho) <
-    ... < u + |bx|/sqrt(rho)`: the left one always carries `sign(magnetic_field_normal)`,
-    the right one the opposite.
+    Solve the full 7-wave 1D ideal-MHD Riemann problem, root-finding the 5
+    unknowns that pin down the fan; whether each fast/slow wave is a shock or
+    a rarefaction falls out of the solve, not assumed up front (see `_solve_wave`).
     """
+    ## rotation signs fixed by the eigenvalue ordering u-|bx|/sqrt(rho) < ... < u+|bx|/sqrt(rho)
     rotation_sign_left = 1.0 if magnetic_field_normal >= 0.0 else -1.0
     rotation_sign_right = -rotation_sign_left
 
@@ -309,10 +302,7 @@ def sample_profile(
     discontinuity at `x0`.
 
     Raises `NotImplementedError` if any sample falls strictly inside a
-    rarefaction fan: this solver resolves the 8 constant states and each wave's
-    head/tail speed exactly, but does not yet interpolate the smooth profile
-    inside a fan (not needed for Ryu-Jones 2a, whose 4 fast/slow waves are all shocks
-    for the standard left/right states).
+    rarefaction fan: fan-interior profiles are not yet interpolated.
     """
     waves = [
         (solution.fast_left, solution.region2),

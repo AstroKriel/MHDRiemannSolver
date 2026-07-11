@@ -43,20 +43,6 @@ class PrimitiveState:
     `magnetic_field_normal` (`bx`) is not stored here: it is one constant shared
     by the whole Riemann problem, not a per-region unknown, so callers thread it
     through separately.
-
-    Fields
-    ---
-    - `density`, `pressure`:
-        Scalar thermodynamic state.
-
-    - `velocity_normal`:
-        Velocity component along the shared normal direction (`magnetic_field_normal`).
-
-    - `velocity_transverse_1`, `velocity_transverse_2`:
-        Velocity components in the plane transverse to the normal direction.
-
-    - `magnetic_field_transverse_1`, `magnetic_field_transverse_2`:
-        Magnetic field components in the plane transverse to the normal direction.
     """
 
     density: float

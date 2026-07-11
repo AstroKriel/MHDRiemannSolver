@@ -90,15 +90,9 @@ def _compute_primitive_eigensystem(
 ) -> tuple[NDArray[Any], NDArray[Any]]:
     """
     Return `(eigenvalues, eigenvectors)` of the primitive-variable flux Jacobian
-    at `state`, with `eigenvectors[:, k]` the primitive-space perturbation
-    direction (matching `PrimitiveVector`'s field order) for `eigenvalues[k]`.
-
-    Built from central-difference Jacobians of `mhd_state.compute_flux` and
-    `mhd_state.as_conserved` (both already covered by the shock/rotation tests)
-    rather than a hand-transcribed analytic eigenvector formula, via the
-    similarity transform `A_primitive = (dU/dW)^-1 @ (dF/dW)`, which shares
-    `A_conserved`'s eigenvalues by construction.
+    at `state`, with `eigenvectors[:, k]` the perturbation direction for `eigenvalues[k]`.
     """
+    ## built numerically, not hand-derived, to avoid a fresh eigenvector-formula error
     primitive_vector = _as_primitive_vector(state=state)
 
     def flux_of_vector(vector: NDArray[Any]) -> NDArray[Any]:
@@ -148,13 +142,13 @@ def solve_rarefaction(
     wave_speed_sign: float,
 ) -> PrimitiveState:
     """
-    Integrate the fast/slow simple-wave ODE from `upstream` to `pressure_downstream`,
-    tracing the characteristic family nearest `upstream`'s fast/slow eigenvalue
-    (`wave_speed_sign` `+1.0`/`-1.0` for the `velocity_normal + c`/`velocity_normal
-    - c` branch) throughout the integration.
+    Integrate the fast/slow simple-wave ODE from `upstream` to `pressure_downstream`;
+    density follows the upstream entropy algebraically, since the wave is isentropic.
 
-    The wave is isentropic, so density follows the upstream entropy algebraically;
-    only the velocity and transverse-field components are integrated in pressure.
+    Parameters
+    ---
+    - `wave_speed_sign`:
+        `+1.0` for the `velocity_normal + c` branch, `-1.0` for `velocity_normal - c`.
     """
     c_fast, c_slow = mhd_state.compute_fast_slow_speeds(state=upstream, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
     reference_speed = c_fast if wave_family == WaveFamily.Fast else c_slow
