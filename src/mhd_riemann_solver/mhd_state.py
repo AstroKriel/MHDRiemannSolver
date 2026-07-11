@@ -211,23 +211,37 @@ def compute_flux(
         magnetic_field_normal=magnetic_field_normal,
         gamma=gamma,
     )
+    mass_flux = state.density * state.velocity_normal
+    momentum_0_flux = state.density * state.velocity_normal**2 + total_pressure - magnetic_field_normal**2
+    momentum_1_flux = (
+        state.density * state.velocity_normal * state.velocity_transverse_1 -
+        magnetic_field_normal * state.magnetic_field_transverse_1
+    )
+    momentum_2_flux = (
+        state.density * state.velocity_normal * state.velocity_transverse_2 -
+        magnetic_field_normal * state.magnetic_field_transverse_2
+    )
+    magnetic_field_transverse_1_flux = (
+        state.velocity_normal * state.magnetic_field_transverse_1 -
+        state.velocity_transverse_1 * magnetic_field_normal
+    )
+    magnetic_field_transverse_2_flux = (
+        state.velocity_normal * state.magnetic_field_transverse_2 -
+        state.velocity_transverse_2 * magnetic_field_normal
+    )
+    energy_flux = state.velocity_normal * (energy + total_pressure) - magnetic_field_normal * (
+        state.velocity_normal * magnetic_field_normal + state.velocity_transverse_1 *
+        state.magnetic_field_transverse_1 + state.velocity_transverse_2 * state.magnetic_field_transverse_2
+    )
     return numpy.array(
         [
-            state.density * state.velocity_normal,
-            state.density * state.velocity_normal**2 + total_pressure - magnetic_field_normal**2,
-            state.density * state.velocity_normal * state.velocity_transverse_1 -
-            magnetic_field_normal * state.magnetic_field_transverse_1,
-            state.density * state.velocity_normal * state.velocity_transverse_2 -
-            magnetic_field_normal * state.magnetic_field_transverse_2,
-            state.velocity_normal * state.magnetic_field_transverse_1 -
-            state.velocity_transverse_1 * magnetic_field_normal,
-            state.velocity_normal * state.magnetic_field_transverse_2 -
-            state.velocity_transverse_2 * magnetic_field_normal,
-            state.velocity_normal * (energy + total_pressure) - magnetic_field_normal * (
-                state.velocity_normal * magnetic_field_normal +
-                state.velocity_transverse_1 * state.magnetic_field_transverse_1 +
-                state.velocity_transverse_2 * state.magnetic_field_transverse_2
-            ),
+            mass_flux,
+            momentum_0_flux,
+            momentum_1_flux,
+            momentum_2_flux,
+            magnetic_field_transverse_1_flux,
+            magnetic_field_transverse_2_flux,
+            energy_flux,
         ],
     )
 
