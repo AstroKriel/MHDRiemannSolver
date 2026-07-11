@@ -344,7 +344,7 @@ def solve_riemann_problem(
             ),
         )
 
-    def residuals(
+    def compute_contact_residual(
         vector: NDArray[Any],
     ) -> NDArray[Any]:
         region_set = build_regions(_unknowns_from_vector(vector=vector))
@@ -368,7 +368,7 @@ def solve_riemann_problem(
         right_fast_wave_downstream_pressure=right_state.pressure * 1.2,
     )
     solution = scipy_root(
-        residuals,
+        compute_contact_residual,
         x0=_as_unknowns_vector(unknowns=initial_guess),
         method="hybr",
     )
