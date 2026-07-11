@@ -62,12 +62,12 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
         )
-        self.assertAlmostEqual(solution.fast_left.state.density, 1.4903, places=3)
-        self.assertAlmostEqual(solution.rotation_left.state.density, 1.4903, places=3)
-        self.assertAlmostEqual(solution.slow_left.state.density, 1.6343, places=3)
+        self.assertAlmostEqual(solution.left_fast_wave.state.density, 1.4903, places=3)
+        self.assertAlmostEqual(solution.left_rotation_discontinuity.state.density, 1.4903, places=3)
+        self.assertAlmostEqual(solution.left_slow_wave.state.density, 1.6343, places=3)
         self.assertAlmostEqual(solution.contact.state.density, 1.4735, places=3)
-        self.assertAlmostEqual(solution.slow_right.state.density, 1.3090, places=3)
-        self.assertAlmostEqual(solution.rotation_right.state.density, 1.3090, places=3)
+        self.assertAlmostEqual(solution.right_slow_wave.state.density, 1.3090, places=3)
+        self.assertAlmostEqual(solution.right_rotation_discontinuity.state.density, 1.3090, places=3)
 
     def test_rotational_discontinuities_preserve_density(
         self,
@@ -79,10 +79,14 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
             gamma=_GAMMA,
         )
         self.assertAlmostEqual(
-            solution.fast_left.state.density, solution.rotation_left.state.density, places=8
+            solution.left_fast_wave.state.density,
+            solution.left_rotation_discontinuity.state.density,
+            places=8,
         )
         self.assertAlmostEqual(
-            solution.slow_right.state.density, solution.rotation_right.state.density, places=8
+            solution.right_slow_wave.state.density,
+            solution.right_rotation_discontinuity.state.density,
+            places=8,
         )
 
     def test_contact_matches_pressure_and_velocity_not_density(
@@ -94,13 +98,17 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
         )
-        self.assertAlmostEqual(solution.slow_left.state.pressure, solution.contact.state.pressure, places=6)
         self.assertAlmostEqual(
-            solution.slow_left.state.velocity_normal,
+            solution.left_slow_wave.state.pressure, solution.contact.state.pressure, places=6
+        )
+        self.assertAlmostEqual(
+            solution.left_slow_wave.state.velocity_normal,
             solution.contact.state.velocity_normal,
             places=6,
         )
-        self.assertNotAlmostEqual(solution.slow_left.state.density, solution.contact.state.density, places=2)
+        self.assertNotAlmostEqual(
+            solution.left_slow_wave.state.density, solution.contact.state.density, places=2
+        )
 
     def test_wave_speeds_match_ryu_jones_1995(
         self,
@@ -116,24 +124,36 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
         )
-        expected_fast_left = 1.2 - 2.3305 / 1.08
-        expected_rotation_left = 0.60588 - 1.0 / math.sqrt(math.pi * 1.4903)
-        expected_slow_left = 0.60588 - 0.51594 / 1.4903
+        expected_left_fast_wave = 1.2 - 2.3305 / 1.08
+        expected_left_rotation_discontinuity = 0.60588 - 1.0 / math.sqrt(math.pi * 1.4903)
+        expected_left_slow_wave = 0.60588 - 0.51594 / 1.4903
         expected_contact = 0.57538
-        expected_slow_right = 0.53432 + 0.48144 / 1.309
-        expected_rotation_right = 0.53432 + 1.0 / math.sqrt(math.pi * 1.309)
-        expected_fast_right = 2.2638
-        self.assertAlmostEqual(solution.fast_left.wave_propagation.head_speed, expected_fast_left, places=3)
+        expected_right_slow_wave = 0.53432 + 0.48144 / 1.309
+        expected_right_rotation_discontinuity = 0.53432 + 1.0 / math.sqrt(math.pi * 1.309)
+        expected_right_fast_wave = 2.2638
         self.assertAlmostEqual(
-            solution.rotation_left.wave_propagation.head_speed, expected_rotation_left, places=3
+            solution.left_fast_wave.wave_propagation.head_speed, expected_left_fast_wave, places=3
         )
-        self.assertAlmostEqual(solution.slow_left.wave_propagation.head_speed, expected_slow_left, places=3)
+        self.assertAlmostEqual(
+            solution.left_rotation_discontinuity.wave_propagation.head_speed,
+            expected_left_rotation_discontinuity,
+            places=3,
+        )
+        self.assertAlmostEqual(
+            solution.left_slow_wave.wave_propagation.head_speed, expected_left_slow_wave, places=3
+        )
         self.assertAlmostEqual(solution.contact.wave_propagation.head_speed, expected_contact, places=3)
-        self.assertAlmostEqual(solution.slow_right.wave_propagation.head_speed, expected_slow_right, places=3)
         self.assertAlmostEqual(
-            solution.rotation_right.wave_propagation.head_speed, expected_rotation_right, places=3
+            solution.right_slow_wave.wave_propagation.head_speed, expected_right_slow_wave, places=3
         )
-        self.assertAlmostEqual(solution.fast_right.wave_propagation.head_speed, expected_fast_right, places=3)
+        self.assertAlmostEqual(
+            solution.right_rotation_discontinuity.wave_propagation.head_speed,
+            expected_right_rotation_discontinuity,
+            places=3,
+        )
+        self.assertAlmostEqual(
+            solution.right_fast_wave.wave_propagation.head_speed, expected_right_fast_wave, places=3
+        )
 
 
 class TestSampleProfile_ReturnsCorrectRegion(unittest.TestCase):
@@ -152,11 +172,11 @@ class TestSampleProfile_ReturnsCorrectRegion(unittest.TestCase):
         sample_positions = numpy.array([0.0, 0.4, 0.58, 0.62, 0.69, 1.0])
         expected_regions = [
             solution.left_state,
-            solution.fast_left.state,
-            solution.slow_left.state,
+            solution.left_fast_wave.state,
+            solution.left_slow_wave.state,
             solution.contact.state,
-            solution.slow_right.state,
-            solution.fast_right.state,
+            solution.right_slow_wave.state,
+            solution.right_fast_wave.state,
         ]
         profile = exact_solution.sample_profile(
             solution=solution,

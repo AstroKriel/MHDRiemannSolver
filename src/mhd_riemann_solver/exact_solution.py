@@ -143,16 +143,16 @@ class _WaveRegions:
     The 6 solved waves of the fan, each paired with the constant state
     immediately to its right; the caller-given `left_state`/`right_state`
     boundaries, and the contact wave (synthesized afterwards from
-    `slow_left`), are not included here.
+    `left_slow_wave`), are not included here.
     """
 
-    fast_left: Wave
-    rotation_left: Wave
-    slow_left: Wave
+    left_fast_wave: Wave
+    left_rotation_discontinuity: Wave
+    left_slow_wave: Wave
     contact_state: PrimitiveState
-    slow_right: Wave
-    rotation_right: Wave
-    fast_right: Wave
+    right_slow_wave: Wave
+    right_rotation_discontinuity: Wave
+    right_fast_wave: Wave
 
 
 ##
@@ -170,21 +170,22 @@ class RiemannSolution:
     - `left_state`:
         The given left state.
 
-    - `fast_left`, `rotation_left`, `slow_left`, `contact`, `slow_right`,
-      `rotation_right`, `fast_right`:
+    - `left_fast_wave`, `left_rotation_discontinuity`, `left_slow_wave`,
+      `contact`, `right_slow_wave`, `right_rotation_discontinuity`,
+      `right_fast_wave`:
         The 7 waves, left to right; each pairs a `WavePropagation` with the
-        constant state immediately to its right (`fast_right.state` is the
-        given right state).
+        constant state immediately to its right (`right_fast_wave.state` is
+        the given right state).
     """
 
     left_state: PrimitiveState
-    fast_left: Wave
-    rotation_left: Wave
-    slow_left: Wave
+    left_fast_wave: Wave
+    left_rotation_discontinuity: Wave
+    left_slow_wave: Wave
     contact: Wave
-    slow_right: Wave
-    rotation_right: Wave
-    fast_right: Wave
+    right_slow_wave: Wave
+    right_rotation_discontinuity: Wave
+    right_fast_wave: Wave
 
 
 ##
@@ -205,65 +206,65 @@ def solve_riemann_problem(
     a rarefaction falls out of the solve, not assumed up front (see `_solve_wave`).
     """
     ## rotation signs fixed by the eigenvalue ordering u-|bx|/sqrt(rho) < ... < u+|bx|/sqrt(rho)
-    rotation_sign_left = 1.0 if magnetic_field_normal >= 0.0 else -1.0
-    rotation_sign_right = -rotation_sign_left
+    left_rotation_sign = 1.0 if magnetic_field_normal >= 0.0 else -1.0
+    right_rotation_sign = -left_rotation_sign
 
     def build_regions(
         unknowns: NDArray[Any],
     ) -> _WaveRegions:
         (
-            fast_left_downstream_pressure,
-            psi_left,
+            left_fast_wave_downstream_pressure,
+            left_rotation_angle,
             pressure_star,
-            psi_right,
-            fast_right_downstream_pressure,
+            right_rotation_angle,
+            right_fast_wave_downstream_pressure,
         ) = unknowns
-        fast_left_downstream_state, fast_left_propagation = _solve_wave(
+        left_fast_wave_downstream_state, left_fast_wave_propagation = _solve_wave(
             upstream_state=left_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
-            pressure_downstream=fast_left_downstream_pressure,
+            pressure_downstream=left_fast_wave_downstream_pressure,
             wave_family=WaveFamily.Fast,
             wave_speed_sign=-1.0,
         )
-        rotation_left_downstream_state = rotational_discontinuity.apply_rotation(
-            upstream_state=fast_left_downstream_state,
-            angle=psi_left,
-            sign=rotation_sign_left,
+        left_rotation_discontinuity_downstream_state = rotational_discontinuity.apply_rotation(
+            upstream_state=left_fast_wave_downstream_state,
+            angle=left_rotation_angle,
+            sign=left_rotation_sign,
         )
-        rotation_left_propagation = _compute_rotation_wave_info(
-            upstream_state=fast_left_downstream_state,
+        left_rotation_discontinuity_propagation = _compute_rotation_wave_info(
+            upstream_state=left_fast_wave_downstream_state,
             magnetic_field_normal=magnetic_field_normal,
-            sign=rotation_sign_left,
+            sign=left_rotation_sign,
         )
-        slow_left_downstream_state, slow_left_propagation = _solve_wave(
-            upstream_state=rotation_left_downstream_state,
+        left_slow_wave_downstream_state, left_slow_wave_propagation = _solve_wave(
+            upstream_state=left_rotation_discontinuity_downstream_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
             pressure_downstream=pressure_star,
             wave_family=WaveFamily.Slow,
             wave_speed_sign=-1.0,
         )
-        fast_right_downstream_state, fast_right_propagation = _solve_wave(
+        right_fast_wave_downstream_state, right_fast_wave_propagation = _solve_wave(
             upstream_state=right_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
-            pressure_downstream=fast_right_downstream_pressure,
+            pressure_downstream=right_fast_wave_downstream_pressure,
             wave_family=WaveFamily.Fast,
             wave_speed_sign=1.0,
         )
-        rotation_right_downstream_state = rotational_discontinuity.apply_rotation(
-            upstream_state=fast_right_downstream_state,
-            angle=psi_right,
-            sign=rotation_sign_right,
+        right_rotation_discontinuity_downstream_state = rotational_discontinuity.apply_rotation(
+            upstream_state=right_fast_wave_downstream_state,
+            angle=right_rotation_angle,
+            sign=right_rotation_sign,
         )
-        rotation_right_propagation = _compute_rotation_wave_info(
-            upstream_state=fast_right_downstream_state,
+        right_rotation_discontinuity_propagation = _compute_rotation_wave_info(
+            upstream_state=right_fast_wave_downstream_state,
             magnetic_field_normal=magnetic_field_normal,
-            sign=rotation_sign_right,
+            sign=right_rotation_sign,
         )
-        slow_right_downstream_state, slow_right_propagation = _solve_wave(
-            upstream_state=rotation_right_downstream_state,
+        right_slow_wave_downstream_state, right_slow_wave_propagation = _solve_wave(
+            upstream_state=right_rotation_discontinuity_downstream_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
             pressure_downstream=pressure_star,
@@ -271,29 +272,29 @@ def solve_riemann_problem(
             wave_speed_sign=1.0,
         )
         return _WaveRegions(
-            fast_left=Wave(
-                wave_propagation=fast_left_propagation,
-                state=fast_left_downstream_state,
+            left_fast_wave=Wave(
+                wave_propagation=left_fast_wave_propagation,
+                state=left_fast_wave_downstream_state,
             ),
-            rotation_left=Wave(
-                wave_propagation=rotation_left_propagation,
-                state=rotation_left_downstream_state,
+            left_rotation_discontinuity=Wave(
+                wave_propagation=left_rotation_discontinuity_propagation,
+                state=left_rotation_discontinuity_downstream_state,
             ),
-            slow_left=Wave(
-                wave_propagation=slow_left_propagation,
-                state=slow_left_downstream_state,
+            left_slow_wave=Wave(
+                wave_propagation=left_slow_wave_propagation,
+                state=left_slow_wave_downstream_state,
             ),
-            contact_state=slow_right_downstream_state,
-            slow_right=Wave(
-                wave_propagation=slow_right_propagation,
-                state=rotation_right_downstream_state,
+            contact_state=right_slow_wave_downstream_state,
+            right_slow_wave=Wave(
+                wave_propagation=right_slow_wave_propagation,
+                state=right_rotation_discontinuity_downstream_state,
             ),
-            rotation_right=Wave(
-                wave_propagation=rotation_right_propagation,
-                state=fast_right_downstream_state,
+            right_rotation_discontinuity=Wave(
+                wave_propagation=right_rotation_discontinuity_propagation,
+                state=right_fast_wave_downstream_state,
             ),
-            fast_right=Wave(
-                wave_propagation=fast_right_propagation,
+            right_fast_wave=Wave(
+                wave_propagation=right_fast_wave_propagation,
                 state=right_state,
             ),
         )
@@ -302,15 +303,15 @@ def solve_riemann_problem(
         unknowns: NDArray[Any],
     ) -> NDArray[Any]:
         region_set = build_regions(unknowns)
-        slow_left_state = region_set.slow_left.state
+        left_slow_wave_state = region_set.left_slow_wave.state
         contact_state = region_set.contact_state
         return numpy.array(
             [
-                slow_left_state.velocity_normal - contact_state.velocity_normal,
-                slow_left_state.velocity_transverse_1 - contact_state.velocity_transverse_1,
-                slow_left_state.velocity_transverse_2 - contact_state.velocity_transverse_2,
-                slow_left_state.magnetic_field_transverse_1 - contact_state.magnetic_field_transverse_1,
-                slow_left_state.magnetic_field_transverse_2 - contact_state.magnetic_field_transverse_2,
+                left_slow_wave_state.velocity_normal - contact_state.velocity_normal,
+                left_slow_wave_state.velocity_transverse_1 - contact_state.velocity_transverse_1,
+                left_slow_wave_state.velocity_transverse_2 - contact_state.velocity_transverse_2,
+                left_slow_wave_state.magnetic_field_transverse_1 - contact_state.magnetic_field_transverse_1,
+                left_slow_wave_state.magnetic_field_transverse_2 - contact_state.magnetic_field_transverse_2,
             ],
         )
 
@@ -332,12 +333,12 @@ def solve_riemann_problem(
         raise RuntimeError(f"riemann-problem root-find did not converge: {solution.message}.")
 
     region_set = build_regions(solution.x)
-    contact_speed = region_set.slow_left.state.velocity_normal
+    contact_speed = region_set.left_slow_wave.state.velocity_normal
     return RiemannSolution(
         left_state=left_state,
-        fast_left=region_set.fast_left,
-        rotation_left=region_set.rotation_left,
-        slow_left=region_set.slow_left,
+        left_fast_wave=region_set.left_fast_wave,
+        left_rotation_discontinuity=region_set.left_rotation_discontinuity,
+        left_slow_wave=region_set.left_slow_wave,
         contact=Wave(
             wave_propagation=WavePropagation(
                 wave_type=WaveType.Shock,
@@ -346,9 +347,9 @@ def solve_riemann_problem(
             ),
             state=region_set.contact_state,
         ),
-        slow_right=region_set.slow_right,
-        rotation_right=region_set.rotation_right,
-        fast_right=region_set.fast_right,
+        right_slow_wave=region_set.right_slow_wave,
+        right_rotation_discontinuity=region_set.right_rotation_discontinuity,
+        right_fast_wave=region_set.right_fast_wave,
     )
 
 
@@ -372,13 +373,13 @@ def sample_profile(
     rarefaction fan: fan-interior profiles are not yet interpolated.
     """
     waves = [
-        solution.fast_left,
-        solution.rotation_left,
-        solution.slow_left,
+        solution.left_fast_wave,
+        solution.left_rotation_discontinuity,
+        solution.left_slow_wave,
         solution.contact,
-        solution.slow_right,
-        solution.rotation_right,
-        solution.fast_right,
+        solution.right_slow_wave,
+        solution.right_rotation_discontinuity,
+        solution.right_fast_wave,
     ]
     profile: list[PrimitiveState] = []
     for position in x:
