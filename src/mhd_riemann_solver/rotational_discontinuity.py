@@ -55,8 +55,10 @@ def apply_rotation(
     return PrimitiveState(
         density=upstream_state.density,
         velocity_normal=upstream_state.velocity_normal,
-        velocity_transverse_1=upstream_state.velocity_transverse_1 + sign * delta_magnetic_field_transverse_1 * inverse_sqrt_density,
-        velocity_transverse_2=upstream_state.velocity_transverse_2 + sign * delta_magnetic_field_transverse_2 * inverse_sqrt_density,
+        velocity_transverse_1=upstream_state.velocity_transverse_1 +
+        sign * delta_magnetic_field_transverse_1 * inverse_sqrt_density,
+        velocity_transverse_2=upstream_state.velocity_transverse_2 +
+        sign * delta_magnetic_field_transverse_2 * inverse_sqrt_density,
         magnetic_field_transverse_1=new_magnetic_field_transverse_1,
         magnetic_field_transverse_2=new_magnetic_field_transverse_2,
         pressure=upstream_state.pressure,

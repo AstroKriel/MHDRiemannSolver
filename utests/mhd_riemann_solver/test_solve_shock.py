@@ -46,7 +46,11 @@ class TestSolveShock_JumpConditions(unittest.TestCase):
     def test_fast_shock_from_ryu_jones_2a_left_state_satisfies_rankine_hugoniot(
         self,
     ):
-        c_fast, _ = mhd_state.compute_fast_slow_speeds(state=_LEFT_STATE, magnetic_field_normal=_MAGNETIC_FIELD_NORMAL, gamma=_GAMMA)
+        c_fast, _ = mhd_state.compute_fast_slow_speeds(
+            state=_LEFT_STATE,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+            gamma=_GAMMA,
+        )
         downstream_state, shock_speed = solve_shock.solve_shock(
             upstream_state=_LEFT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
@@ -67,7 +71,11 @@ class TestSolveShock_JumpConditions(unittest.TestCase):
     def test_slow_shock_from_ryu_jones_2a_right_state_satisfies_rankine_hugoniot(
         self,
     ):
-        _, c_slow = mhd_state.compute_fast_slow_speeds(state=_RIGHT_STATE, magnetic_field_normal=_MAGNETIC_FIELD_NORMAL, gamma=_GAMMA)
+        _, c_slow = mhd_state.compute_fast_slow_speeds(
+            state=_RIGHT_STATE,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+            gamma=_GAMMA,
+        )
         downstream_state, shock_speed = solve_shock.solve_shock(
             upstream_state=_RIGHT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
@@ -99,7 +107,11 @@ class TestSolveShock_JumpConditions(unittest.TestCase):
         )
         magnetic_field_normal = 0.0
         gamma = 1.4
-        c_fast, _ = mhd_state.compute_fast_slow_speeds(state=upstream_state, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
+        c_fast, _ = mhd_state.compute_fast_slow_speeds(
+            state=upstream_state,
+            magnetic_field_normal=magnetic_field_normal,
+            gamma=gamma,
+        )
         downstream_state, shock_speed = solve_shock.solve_shock(
             upstream_state=upstream_state,
             magnetic_field_normal=magnetic_field_normal,
@@ -125,7 +137,11 @@ class TestSolveShock_TransverseFieldDirection(unittest.TestCase):
         self,
     ):
         """A shock (unlike a rotational discontinuity) only scales |Bt|; direction is fixed."""
-        c_fast, _ = mhd_state.compute_fast_slow_speeds(state=_LEFT_STATE, magnetic_field_normal=_MAGNETIC_FIELD_NORMAL, gamma=_GAMMA)
+        c_fast, _ = mhd_state.compute_fast_slow_speeds(
+            state=_LEFT_STATE,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+            gamma=_GAMMA,
+        )
         downstream_state, _ = solve_shock.solve_shock(
             upstream_state=_LEFT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,

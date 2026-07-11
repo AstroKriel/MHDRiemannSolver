@@ -146,7 +146,12 @@ class TestSampleProfile_ReturnsCorrectRegion(unittest.TestCase):
             solution.region6,
             solution.region8,
         ]
-        profile = exact_solution.sample_profile(solution=solution, x=sample_positions, t=t, x0=x0)
+        profile = exact_solution.sample_profile(
+            solution=solution,
+            x=sample_positions,
+            t=t,
+            x0=x0,
+        )
         for expected_region, got_state in zip(expected_regions, profile):
             self.assertAlmostEqual(got_state.density, expected_region.density, places=8)
 

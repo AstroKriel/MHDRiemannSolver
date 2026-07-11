@@ -36,18 +36,17 @@ def _build_shock_downstream_candidate(
     density_downstream)` pair. Normal-momentum and energy are not enforced here;
     `solve_shock` root-finds on `(mass_flux, density_downstream)` until they are.
     """
-    field_ratio = (mass_flux**2 / upstream_state.density - magnetic_field_normal**2) / (
-        mass_flux**2 / density_downstream - magnetic_field_normal**2
-    )
+    field_ratio = (mass_flux**2 / upstream_state.density -
+                   magnetic_field_normal**2) / (mass_flux**2 / density_downstream - magnetic_field_normal**2)
     magnetic_field_transverse_1_downstream = upstream_state.magnetic_field_transverse_1 * field_ratio
     magnetic_field_transverse_2_downstream = upstream_state.magnetic_field_transverse_2 * field_ratio
     velocity_transverse_1_downstream = (
-        upstream_state.velocity_transverse_1
-        + magnetic_field_normal * (magnetic_field_transverse_1_downstream - upstream_state.magnetic_field_transverse_1) / mass_flux
+        upstream_state.velocity_transverse_1 + magnetic_field_normal *
+        (magnetic_field_transverse_1_downstream - upstream_state.magnetic_field_transverse_1) / mass_flux
     )
     velocity_transverse_2_downstream = (
-        upstream_state.velocity_transverse_2
-        + magnetic_field_normal * (magnetic_field_transverse_2_downstream - upstream_state.magnetic_field_transverse_2) / mass_flux
+        upstream_state.velocity_transverse_2 + magnetic_field_normal *
+        (magnetic_field_transverse_2_downstream - upstream_state.magnetic_field_transverse_2) / mass_flux
     )
     normal_speed_upstream = mass_flux / upstream_state.density
     normal_speed_downstream = mass_flux / density_downstream
@@ -92,9 +91,12 @@ def solve_shock(
         branch is found.
     """
     initial_mass_flux = upstream_state.density * initial_relative_speed_guess
-    initial_density_downstream = upstream_state.density * (pressure_downstream / upstream_state.pressure) ** (1.0 / gamma)
+    initial_density_downstream = upstream_state.density * (pressure_downstream /
+                                                           upstream_state.pressure)**(1.0 / gamma)
 
-    def residuals(unknowns: NDArray[Any]) -> NDArray[Any]:
+    def residuals(
+        unknowns: NDArray[Any],
+    ) -> NDArray[Any]:
         mass_flux, density_downstream = unknowns
         downstream_state, shock_speed = _build_shock_downstream_candidate(
             upstream_state=upstream_state,

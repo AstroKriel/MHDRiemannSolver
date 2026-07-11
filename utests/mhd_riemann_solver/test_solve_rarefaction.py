@@ -55,8 +55,15 @@ class TestEigensystem_MatchesAnalyticWaveSpeeds(unittest.TestCase):
         absolute derivative, which is why this test caught a real bug the RH-residual
         tests did not).
         """
-        c_fast, c_slow = mhd_state.compute_fast_slow_speeds(state=_LEFT_STATE, magnetic_field_normal=_MAGNETIC_FIELD_NORMAL, gamma=_GAMMA)
-        c_alfven = mhd_state.compute_alfven_speed(state=_LEFT_STATE, magnetic_field_normal=_MAGNETIC_FIELD_NORMAL)
+        c_fast, c_slow = mhd_state.compute_fast_slow_speeds(
+            state=_LEFT_STATE,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+            gamma=_GAMMA,
+        )
+        c_alfven = mhd_state.compute_alfven_speed(
+            state=_LEFT_STATE,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+        )
         expected = sorted(
             [
                 _LEFT_STATE.velocity_normal - c_fast,
@@ -68,7 +75,11 @@ class TestEigensystem_MatchesAnalyticWaveSpeeds(unittest.TestCase):
                 _LEFT_STATE.velocity_normal + c_fast,
             ],
         )
-        eigenvalues, _ = solve_rarefaction._compute_primitive_eigensystem(state=_LEFT_STATE, magnetic_field_normal=_MAGNETIC_FIELD_NORMAL, gamma=_GAMMA)
+        eigenvalues, _ = solve_rarefaction._compute_primitive_eigensystem(
+            state=_LEFT_STATE,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+            gamma=_GAMMA,
+        )
         for expected_value, got_value in zip(expected, sorted(eigenvalues)):
             self.assertAlmostEqual(got_value, expected_value, places=6)
 
@@ -84,7 +95,11 @@ class TestEigensystem_IsentropicConsistency(unittest.TestCase):
         characteristics by construction, so this is an independent check on the
         eigenvector itself, not just its eigenvalue.
         """
-        c_fast, _ = mhd_state.compute_fast_slow_speeds(state=_LEFT_STATE, magnetic_field_normal=_MAGNETIC_FIELD_NORMAL, gamma=_GAMMA)
+        c_fast, _ = mhd_state.compute_fast_slow_speeds(
+            state=_LEFT_STATE,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+            gamma=_GAMMA,
+        )
         direction = solve_rarefaction._select_rarefaction_direction(
             state=_LEFT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
@@ -100,7 +115,11 @@ class TestSolveRarefaction_WeakWaveLimit(unittest.TestCase):
         self,
     ):
         """A vanishingly weak rarefaction and shock of the same family must coincide."""
-        c_fast, _ = mhd_state.compute_fast_slow_speeds(state=_LEFT_STATE, magnetic_field_normal=_MAGNETIC_FIELD_NORMAL, gamma=_GAMMA)
+        c_fast, _ = mhd_state.compute_fast_slow_speeds(
+            state=_LEFT_STATE,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+            gamma=_GAMMA,
+        )
         delta_p = 1e-4
         rarefaction_state = solve_rarefaction.solve_rarefaction(
             upstream_state=_LEFT_STATE,
@@ -119,12 +138,18 @@ class TestSolveRarefaction_WeakWaveLimit(unittest.TestCase):
         )
         self.assertAlmostEqual(rarefaction_state.velocity_normal, shock_state.velocity_normal, places=8)
         self.assertAlmostEqual(rarefaction_state.density, shock_state.density, places=8)
-        self.assertAlmostEqual(rarefaction_state.magnetic_field_transverse_1, shock_state.magnetic_field_transverse_1, places=8)
+        self.assertAlmostEqual(
+            rarefaction_state.magnetic_field_transverse_1, shock_state.magnetic_field_transverse_1, places=8
+        )
 
     def test_weak_slow_rarefaction_converges_to_weak_slow_shock(
         self,
     ):
-        _, c_slow = mhd_state.compute_fast_slow_speeds(state=_RIGHT_STATE, magnetic_field_normal=_MAGNETIC_FIELD_NORMAL, gamma=_GAMMA)
+        _, c_slow = mhd_state.compute_fast_slow_speeds(
+            state=_RIGHT_STATE,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+            gamma=_GAMMA,
+        )
         delta_p = 1e-4
         rarefaction_state = solve_rarefaction.solve_rarefaction(
             upstream_state=_RIGHT_STATE,
@@ -143,7 +168,9 @@ class TestSolveRarefaction_WeakWaveLimit(unittest.TestCase):
         )
         self.assertAlmostEqual(rarefaction_state.velocity_normal, shock_state.velocity_normal, places=8)
         self.assertAlmostEqual(rarefaction_state.density, shock_state.density, places=8)
-        self.assertAlmostEqual(rarefaction_state.magnetic_field_transverse_1, shock_state.magnetic_field_transverse_1, places=8)
+        self.assertAlmostEqual(
+            rarefaction_state.magnetic_field_transverse_1, shock_state.magnetic_field_transverse_1, places=8
+        )
 
 
 ##

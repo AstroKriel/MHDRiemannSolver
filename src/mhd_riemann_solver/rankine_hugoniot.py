@@ -28,10 +28,26 @@ def compute_jump_residual(
     `upstream_state` and `downstream_state` are consistent jump states for that
     `shock_speed`.
     """
-    upstream_conserved = mhd_state.as_conserved(state=upstream_state, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
-    downstream_conserved = mhd_state.as_conserved(state=downstream_state, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
-    upstream_flux = mhd_state.compute_flux(state=upstream_state, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
-    downstream_flux = mhd_state.compute_flux(state=downstream_state, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
+    upstream_conserved = mhd_state.as_conserved(
+        state=upstream_state,
+        magnetic_field_normal=magnetic_field_normal,
+        gamma=gamma,
+    )
+    downstream_conserved = mhd_state.as_conserved(
+        state=downstream_state,
+        magnetic_field_normal=magnetic_field_normal,
+        gamma=gamma,
+    )
+    upstream_flux = mhd_state.compute_flux(
+        state=upstream_state,
+        magnetic_field_normal=magnetic_field_normal,
+        gamma=gamma,
+    )
+    downstream_flux = mhd_state.compute_flux(
+        state=downstream_state,
+        magnetic_field_normal=magnetic_field_normal,
+        gamma=gamma,
+    )
     upstream_term = upstream_flux - shock_speed * upstream_conserved
     downstream_term = downstream_flux - shock_speed * downstream_conserved
     return upstream_term - downstream_term

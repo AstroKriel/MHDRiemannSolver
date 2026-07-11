@@ -64,7 +64,11 @@ def _solve_wave(
     wave_speed_sign: float,
 ) -> tuple[PrimitiveState, WaveInfo]:
     """Solve one fast/slow wave, dispatching to a shock or a rarefaction by the sign of `pressure_downstream - upstream_state.pressure`."""
-    c_fast_up, c_slow_up = mhd_state.compute_fast_slow_speeds(state=upstream_state, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
+    c_fast_up, c_slow_up = mhd_state.compute_fast_slow_speeds(
+        state=upstream_state,
+        magnetic_field_normal=magnetic_field_normal,
+        gamma=gamma,
+    )
     reference_speed_up = c_fast_up if wave_family == WaveFamily.Fast else c_slow_up
     if pressure_downstream > upstream_state.pressure:
         downstream_state, shock_speed = solve_shock.solve_shock(
@@ -74,7 +78,11 @@ def _solve_wave(
             pressure_downstream=pressure_downstream,
             initial_relative_speed_guess=-wave_speed_sign * reference_speed_up,
         )
-        return downstream_state, WaveInfo(kind=WaveKind.Shock, head_speed=shock_speed, tail_speed=shock_speed)
+        return downstream_state, WaveInfo(
+            kind=WaveKind.Shock,
+            head_speed=shock_speed,
+            tail_speed=shock_speed,
+        )
     downstream_state = solve_rarefaction.solve_rarefaction(
         upstream_state=upstream_state,
         magnetic_field_normal=magnetic_field_normal,
@@ -83,11 +91,19 @@ def _solve_wave(
         wave_family=wave_family,
         wave_speed_sign=wave_speed_sign,
     )
-    c_fast_down, c_slow_down = mhd_state.compute_fast_slow_speeds(state=downstream_state, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
+    c_fast_down, c_slow_down = mhd_state.compute_fast_slow_speeds(
+        state=downstream_state,
+        magnetic_field_normal=magnetic_field_normal,
+        gamma=gamma,
+    )
     reference_speed_down = c_fast_down if wave_family == WaveFamily.Fast else c_slow_down
     head_speed = upstream_state.velocity_normal + wave_speed_sign * reference_speed_up
     tail_speed = downstream_state.velocity_normal + wave_speed_sign * reference_speed_down
-    return downstream_state, WaveInfo(kind=WaveKind.Rarefaction, head_speed=min(head_speed, tail_speed), tail_speed=max(head_speed, tail_speed))
+    return downstream_state, WaveInfo(
+        kind=WaveKind.Rarefaction,
+        head_speed=min(head_speed, tail_speed),
+        tail_speed=max(head_speed, tail_speed),
+    )
 
 
 def _compute_rotation_wave_info(
@@ -97,7 +113,11 @@ def _compute_rotation_wave_info(
     sign: float,
 ) -> WaveInfo:
     speed = upstream_state.velocity_normal - sign * magnetic_field_normal / numpy.sqrt(upstream_state.density)
-    return WaveInfo(kind=WaveKind.Shock, head_speed=speed, tail_speed=speed)
+    return WaveInfo(
+        kind=WaveKind.Shock,
+        head_speed=speed,
+        tail_speed=speed,
+    )
 
 
 ##
@@ -194,7 +214,9 @@ def solve_riemann_problem(
     rotation_sign_left = 1.0 if magnetic_field_normal >= 0.0 else -1.0
     rotation_sign_right = -rotation_sign_left
 
-    def build_regions(unknowns: NDArray[Any]) -> _RegionSet:
+    def build_regions(
+        unknowns: NDArray[Any],
+    ) -> _RegionSet:
         pressure_2, psi_left, pressure_star, psi_right, pressure_7 = unknowns
         region2_state, fast_left = _solve_wave(
             upstream_state=left_state,
@@ -204,8 +226,16 @@ def solve_riemann_problem(
             wave_family=WaveFamily.Fast,
             wave_speed_sign=-1.0,
         )
-        region3_state = rotational_discontinuity.apply_rotation(upstream_state=region2_state, angle=psi_left, sign=rotation_sign_left)
-        rotation_left = _compute_rotation_wave_info(upstream_state=region2_state, magnetic_field_normal=magnetic_field_normal, sign=rotation_sign_left)
+        region3_state = rotational_discontinuity.apply_rotation(
+            upstream_state=region2_state,
+            angle=psi_left,
+            sign=rotation_sign_left,
+        )
+        rotation_left = _compute_rotation_wave_info(
+            upstream_state=region2_state,
+            magnetic_field_normal=magnetic_field_normal,
+            sign=rotation_sign_left,
+        )
         region4_state, slow_left = _solve_wave(
             upstream_state=region3_state,
             magnetic_field_normal=magnetic_field_normal,
@@ -222,8 +252,16 @@ def solve_riemann_problem(
             wave_family=WaveFamily.Fast,
             wave_speed_sign=1.0,
         )
-        region6_state = rotational_discontinuity.apply_rotation(upstream_state=region7_state, angle=psi_right, sign=rotation_sign_right)
-        rotation_right = _compute_rotation_wave_info(upstream_state=region7_state, magnetic_field_normal=magnetic_field_normal, sign=rotation_sign_right)
+        region6_state = rotational_discontinuity.apply_rotation(
+            upstream_state=region7_state,
+            angle=psi_right,
+            sign=rotation_sign_right,
+        )
+        rotation_right = _compute_rotation_wave_info(
+            upstream_state=region7_state,
+            magnetic_field_normal=magnetic_field_normal,
+            sign=rotation_sign_right,
+        )
         region5_state, slow_right = _solve_wave(
             upstream_state=region6_state,
             magnetic_field_normal=magnetic_field_normal,
@@ -247,20 +285,33 @@ def solve_riemann_problem(
             fast_right=fast_right,
         )
 
-    def residuals(unknowns: NDArray[Any]) -> NDArray[Any]:
+    def residuals(
+        unknowns: NDArray[Any],
+    ) -> NDArray[Any]:
         region_set = build_regions(unknowns)
         return numpy.array(
             [
                 region_set.region4.velocity_normal - region_set.region5.velocity_normal,
                 region_set.region4.velocity_transverse_1 - region_set.region5.velocity_transverse_1,
                 region_set.region4.velocity_transverse_2 - region_set.region5.velocity_transverse_2,
-                region_set.region4.magnetic_field_transverse_1 - region_set.region5.magnetic_field_transverse_1,
-                region_set.region4.magnetic_field_transverse_2 - region_set.region5.magnetic_field_transverse_2,
+                region_set.region4.magnetic_field_transverse_1 -
+                region_set.region5.magnetic_field_transverse_1,
+                region_set.region4.magnetic_field_transverse_2 -
+                region_set.region5.magnetic_field_transverse_2,
             ],
         )
 
-    initial_guess = numpy.array([left_state.pressure * 1.2, 0.0, 0.5 * (left_state.pressure + right_state.pressure), 0.0, right_state.pressure * 1.2])
-    solution = scipy_root(residuals, x0=initial_guess, method="hybr")
+    initial_guess = numpy.array(
+        [
+            left_state.pressure * 1.2, 0.0, 0.5 * (left_state.pressure + right_state.pressure), 0.0,
+            right_state.pressure * 1.2
+        ]
+    )
+    solution = scipy_root(
+        residuals,
+        x0=initial_guess,
+        method="hybr",
+    )
     if not solution.success:
         raise RuntimeError(f"riemann-problem root-find did not converge: {solution.message}.")
 
@@ -278,7 +329,11 @@ def solve_riemann_problem(
         fast_left=region_set.fast_left,
         rotation_left=region_set.rotation_left,
         slow_left=region_set.slow_left,
-        contact=WaveInfo(kind=WaveKind.Shock, head_speed=contact_speed, tail_speed=contact_speed),
+        contact=WaveInfo(
+            kind=WaveKind.Shock,
+            head_speed=contact_speed,
+            tail_speed=contact_speed,
+        ),
         slow_right=region_set.slow_right,
         rotation_right=region_set.rotation_right,
         fast_right=region_set.fast_right,

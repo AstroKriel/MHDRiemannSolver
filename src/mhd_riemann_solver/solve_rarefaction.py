@@ -95,14 +95,32 @@ def _compute_primitive_eigensystem(
     ## built numerically, not hand-derived, to avoid a fresh eigenvector-formula error
     primitive_vector = _as_primitive_vector(state=state)
 
-    def flux_of_vector(vector: NDArray[Any]) -> NDArray[Any]:
-        return mhd_state.compute_flux(state=_state_from_primitive_vector(vector=vector), magnetic_field_normal=magnetic_field_normal, gamma=gamma)
+    def flux_of_vector(
+        vector: NDArray[Any],
+    ) -> NDArray[Any]:
+        return mhd_state.compute_flux(
+            state=_state_from_primitive_vector(vector=vector),
+            magnetic_field_normal=magnetic_field_normal,
+            gamma=gamma,
+        )
 
-    def conserved_of_vector(vector: NDArray[Any]) -> NDArray[Any]:
-        return mhd_state.as_conserved(state=_state_from_primitive_vector(vector=vector), magnetic_field_normal=magnetic_field_normal, gamma=gamma)
+    def conserved_of_vector(
+        vector: NDArray[Any],
+    ) -> NDArray[Any]:
+        return mhd_state.as_conserved(
+            state=_state_from_primitive_vector(vector=vector),
+            magnetic_field_normal=magnetic_field_normal,
+            gamma=gamma,
+        )
 
-    flux_jacobian = _compute_numerical_jacobian(func=flux_of_vector, x=primitive_vector)
-    conserved_jacobian = _compute_numerical_jacobian(func=conserved_of_vector, x=primitive_vector)
+    flux_jacobian = _compute_numerical_jacobian(
+        func=flux_of_vector,
+        x=primitive_vector,
+    )
+    conserved_jacobian = _compute_numerical_jacobian(
+        func=conserved_of_vector,
+        x=primitive_vector,
+    )
     primitive_flux_jacobian = numpy.linalg.solve(conserved_jacobian, flux_jacobian)
     eigenvalues, eigenvectors = numpy.linalg.eig(primitive_flux_jacobian)
     return numpy.real(eigenvalues), numpy.real(eigenvectors)
@@ -120,7 +138,11 @@ def _select_rarefaction_direction(
     characteristic family whose eigenvalue is closest to `target_eigenvalue`,
     normalized so its own pressure component is `1`.
     """
-    eigenvalues, eigenvectors = _compute_primitive_eigensystem(state=state, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
+    eigenvalues, eigenvectors = _compute_primitive_eigensystem(
+        state=state,
+        magnetic_field_normal=magnetic_field_normal,
+        gamma=gamma,
+    )
     closest_index = int(numpy.argmin(numpy.abs(eigenvalues - target_eigenvalue)))
     direction = eigenvectors[:, closest_index]
     pressure_component = direction[6]
@@ -150,14 +172,21 @@ def solve_rarefaction(
     - `wave_speed_sign`:
         `+1.0` for the `velocity_normal + c` branch, `-1.0` for `velocity_normal - c`.
     """
-    c_fast, c_slow = mhd_state.compute_fast_slow_speeds(state=upstream_state, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
+    c_fast, c_slow = mhd_state.compute_fast_slow_speeds(
+        state=upstream_state,
+        magnetic_field_normal=magnetic_field_normal,
+        gamma=gamma,
+    )
     reference_speed = c_fast if wave_family == WaveFamily.Fast else c_slow
     target_eigenvalue = upstream_state.velocity_normal + wave_speed_sign * reference_speed
     entropy_constant = upstream_state.pressure / upstream_state.density**gamma
 
-    def rhs(pressure: float, state_vector: NDArray[Any]) -> NDArray[Any]:
+    def rhs(
+        pressure: float,
+        state_vector: NDArray[Any],
+    ) -> NDArray[Any]:
         velocity_normal, velocity_transverse_1, velocity_transverse_2, magnetic_field_transverse_1, magnetic_field_transverse_2 = state_vector
-        density = (pressure / entropy_constant) ** (1.0 / gamma)
+        density = (pressure / entropy_constant)**(1.0 / gamma)
         state = PrimitiveState(
             density=density,
             velocity_normal=velocity_normal,
@@ -194,8 +223,10 @@ def solve_rarefaction(
     )
     if not solution.success:
         raise RuntimeError(f"rarefaction ode integration failed: {solution.message}.")
-    velocity_normal, velocity_transverse_1, velocity_transverse_2, magnetic_field_transverse_1, magnetic_field_transverse_2 = solution.y[:, -1]
-    density_downstream = (pressure_downstream / entropy_constant) ** (1.0 / gamma)
+    velocity_normal, velocity_transverse_1, velocity_transverse_2, magnetic_field_transverse_1, magnetic_field_transverse_2 = solution.y[:,
+                                                                                                                                         -1
+                                                                                                                                         ]
+    density_downstream = (pressure_downstream / entropy_constant)**(1.0 / gamma)
     return PrimitiveState(
         density=density_downstream,
         velocity_normal=velocity_normal,
