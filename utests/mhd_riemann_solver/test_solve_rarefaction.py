@@ -139,7 +139,9 @@ class TestSolveRarefaction_WeakWaveLimit(unittest.TestCase):
         self.assertAlmostEqual(rarefaction_state.velocity_normal, shock_state.velocity_normal, places=8)
         self.assertAlmostEqual(rarefaction_state.density, shock_state.density, places=8)
         self.assertAlmostEqual(
-            rarefaction_state.magnetic_field_transverse_1, shock_state.magnetic_field_transverse_1, places=8
+            rarefaction_state.magnetic_field_transverse_1,
+            shock_state.magnetic_field_transverse_1,
+            places=8,
         )
 
     def test_weak_slow_rarefaction_converges_to_weak_slow_shock(
@@ -169,7 +171,9 @@ class TestSolveRarefaction_WeakWaveLimit(unittest.TestCase):
         self.assertAlmostEqual(rarefaction_state.velocity_normal, shock_state.velocity_normal, places=8)
         self.assertAlmostEqual(rarefaction_state.density, shock_state.density, places=8)
         self.assertAlmostEqual(
-            rarefaction_state.magnetic_field_transverse_1, shock_state.magnetic_field_transverse_1, places=8
+            rarefaction_state.magnetic_field_transverse_1,
+            shock_state.magnetic_field_transverse_1,
+            places=8,
         )
 
 

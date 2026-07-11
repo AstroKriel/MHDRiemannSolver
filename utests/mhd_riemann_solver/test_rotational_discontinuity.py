@@ -57,7 +57,7 @@ class TestRotationalDiscontinuity_JumpConditions(unittest.TestCase):
             sign=sign,
         )
         shock_speed = _LEFT_STATE.velocity_normal - sign * _MAGNETIC_FIELD_NORMAL / numpy.sqrt(
-            _LEFT_STATE.density
+            _LEFT_STATE.density,
         )
         residual = rankine_hugoniot.compute_jump_residual(
             upstream_state=_LEFT_STATE,
@@ -80,7 +80,7 @@ class TestRotationalDiscontinuity_JumpConditions(unittest.TestCase):
             sign=sign,
         )
         shock_speed = _RIGHT_STATE.velocity_normal - sign * _MAGNETIC_FIELD_NORMAL / numpy.sqrt(
-            _RIGHT_STATE.density
+            _RIGHT_STATE.density,
         )
         residual = rankine_hugoniot.compute_jump_residual(
             upstream_state=_RIGHT_STATE,
@@ -106,7 +106,7 @@ class TestRotationalDiscontinuity_JumpConditions(unittest.TestCase):
         self.assertAlmostEqual(
             downstream_state.magnetic_field_transverse_magnitude,
             _LEFT_STATE.magnetic_field_transverse_magnitude,
-            places=12
+            places=12,
         )
 
 

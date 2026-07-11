@@ -78,8 +78,12 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
         )
-        self.assertAlmostEqual(solution.fast_left.state.density, solution.rotation_left.state.density, places=8)
-        self.assertAlmostEqual(solution.slow_right.state.density, solution.rotation_right.state.density, places=8)
+        self.assertAlmostEqual(
+            solution.fast_left.state.density, solution.rotation_left.state.density, places=8
+        )
+        self.assertAlmostEqual(
+            solution.slow_right.state.density, solution.rotation_right.state.density, places=8
+        )
 
     def test_contact_matches_pressure_and_velocity_not_density(
         self,
@@ -92,7 +96,9 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
         )
         self.assertAlmostEqual(solution.slow_left.state.pressure, solution.contact.state.pressure, places=6)
         self.assertAlmostEqual(
-            solution.slow_left.state.velocity_normal, solution.contact.state.velocity_normal, places=6
+            solution.slow_left.state.velocity_normal,
+            solution.contact.state.velocity_normal,
+            places=6,
         )
         self.assertNotAlmostEqual(solution.slow_left.state.density, solution.contact.state.density, places=2)
 
@@ -118,11 +124,15 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
         expected_rotation_right = 0.53432 + 1.0 / math.sqrt(math.pi * 1.309)
         expected_fast_right = 2.2638
         self.assertAlmostEqual(solution.fast_left.wave_propagation.head_speed, expected_fast_left, places=3)
-        self.assertAlmostEqual(solution.rotation_left.wave_propagation.head_speed, expected_rotation_left, places=3)
+        self.assertAlmostEqual(
+            solution.rotation_left.wave_propagation.head_speed, expected_rotation_left, places=3
+        )
         self.assertAlmostEqual(solution.slow_left.wave_propagation.head_speed, expected_slow_left, places=3)
         self.assertAlmostEqual(solution.contact.wave_propagation.head_speed, expected_contact, places=3)
         self.assertAlmostEqual(solution.slow_right.wave_propagation.head_speed, expected_slow_right, places=3)
-        self.assertAlmostEqual(solution.rotation_right.wave_propagation.head_speed, expected_rotation_right, places=3)
+        self.assertAlmostEqual(
+            solution.rotation_right.wave_propagation.head_speed, expected_rotation_right, places=3
+        )
         self.assertAlmostEqual(solution.fast_right.wave_propagation.head_speed, expected_fast_right, places=3)
 
 

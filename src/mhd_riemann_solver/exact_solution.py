@@ -265,13 +265,31 @@ def solve_riemann_problem(
             wave_speed_sign=1.0,
         )
         return _WaveRegions(
-            fast_left=Wave(wave_propagation=fast_left_propagation, state=region2_state),
-            rotation_left=Wave(wave_propagation=rotation_left_propagation, state=region3_state),
-            slow_left=Wave(wave_propagation=slow_left_propagation, state=region4_state),
+            fast_left=Wave(
+                wave_propagation=fast_left_propagation,
+                state=region2_state,
+            ),
+            rotation_left=Wave(
+                wave_propagation=rotation_left_propagation,
+                state=region3_state,
+            ),
+            slow_left=Wave(
+                wave_propagation=slow_left_propagation,
+                state=region4_state,
+            ),
             contact_state=region5_state,
-            slow_right=Wave(wave_propagation=slow_right_propagation, state=region6_state),
-            rotation_right=Wave(wave_propagation=rotation_right_propagation, state=region7_state),
-            fast_right=Wave(wave_propagation=fast_right_propagation, state=right_state),
+            slow_right=Wave(
+                wave_propagation=slow_right_propagation,
+                state=region6_state,
+            ),
+            rotation_right=Wave(
+                wave_propagation=rotation_right_propagation,
+                state=region7_state,
+            ),
+            fast_right=Wave(
+                wave_propagation=fast_right_propagation,
+                state=right_state,
+            ),
         )
 
     def residuals(
@@ -292,9 +310,12 @@ def solve_riemann_problem(
 
     initial_guess = numpy.array(
         [
-            left_state.pressure * 1.2, 0.0, 0.5 * (left_state.pressure + right_state.pressure), 0.0,
-            right_state.pressure * 1.2
-        ]
+            left_state.pressure * 1.2,
+            0.0,
+            0.5 * (left_state.pressure + right_state.pressure),
+            0.0,
+            right_state.pressure * 1.2,
+        ],
     )
     solution = scipy_root(
         residuals,
@@ -360,10 +381,8 @@ def sample_profile(
         for wave in waves:
             if self_similar_speed < wave.wave_propagation.head_speed:
                 break
-            if (
-                wave.wave_propagation.wave_type == WaveType.Rarefaction
-                and self_similar_speed < wave.wave_propagation.tail_speed
-            ):
+            if (wave.wave_propagation.wave_type == WaveType.Rarefaction
+                    and self_similar_speed < wave.wave_propagation.tail_speed):
                 raise NotImplementedError(
                     f"position `{position}` at t=`{t}` falls inside a rarefaction fan; "
                     "fan-interior sampling is not yet supported.",

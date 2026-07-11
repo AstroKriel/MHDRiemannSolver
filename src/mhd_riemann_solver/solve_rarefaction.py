@@ -223,9 +223,10 @@ def solve_rarefaction(
     )
     if not solution.success:
         raise RuntimeError(f"rarefaction ode integration failed: {solution.message}.")
-    velocity_normal, velocity_transverse_1, velocity_transverse_2, magnetic_field_transverse_1, magnetic_field_transverse_2 = solution.y[:,
-                                                                                                                                         -1
-                                                                                                                                         ]
+    velocity_normal, velocity_transverse_1, velocity_transverse_2, magnetic_field_transverse_1, magnetic_field_transverse_2 = solution.y[
+        :,
+        -1,
+    ]
     density_downstream = (pressure_downstream / entropy_constant)**(1.0 / gamma)
     return PrimitiveState(
         density=density_downstream,

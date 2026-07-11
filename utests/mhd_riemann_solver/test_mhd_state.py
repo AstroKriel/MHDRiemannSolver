@@ -121,10 +121,14 @@ class TestConservedPrimitive_RoundTrip(unittest.TestCase):
         self.assertAlmostEqual(recovered.velocity_transverse_1, _LEFT_STATE.velocity_transverse_1, places=12)
         self.assertAlmostEqual(recovered.velocity_transverse_2, _LEFT_STATE.velocity_transverse_2, places=12)
         self.assertAlmostEqual(
-            recovered.magnetic_field_transverse_1, _LEFT_STATE.magnetic_field_transverse_1, places=12
+            recovered.magnetic_field_transverse_1,
+            _LEFT_STATE.magnetic_field_transverse_1,
+            places=12,
         )
         self.assertAlmostEqual(
-            recovered.magnetic_field_transverse_2, _LEFT_STATE.magnetic_field_transverse_2, places=12
+            recovered.magnetic_field_transverse_2,
+            _LEFT_STATE.magnetic_field_transverse_2,
+            places=12,
         )
         self.assertAlmostEqual(recovered.pressure, _LEFT_STATE.pressure, places=12)
 
