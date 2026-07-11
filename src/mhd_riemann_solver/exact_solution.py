@@ -82,6 +82,8 @@ def _solve_wave(
         gamma=gamma,
     )
     c_upstream = c_fast_upstream if wave_family == WaveFamily.Fast else c_slow_upstream
+    ## a compression (downstream pressure higher) forms a shock; an expansion forms
+    ## an isentropic rarefaction fan instead; the two cases are mutually exclusive
     if pressure_downstream > upstream_state.pressure:
         downstream_state, shock_speed = solve_shock.solve_shock(
             upstream_state=upstream_state,
