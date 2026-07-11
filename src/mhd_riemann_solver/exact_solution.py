@@ -29,7 +29,7 @@ class WaveType(str, Enum):
 
 
 @dataclass(frozen=True)
-class WaveInfo:
+class WavePropagation:
     """
     Propagation speed of one wave in the fan.
 
@@ -62,7 +62,7 @@ def _solve_wave(
     pressure_downstream: float,
     wave_family: WaveFamily,
     wave_speed_sign: float,
-) -> tuple[PrimitiveState, WaveInfo]:
+) -> tuple[PrimitiveState, WavePropagation]:
     """Solve one fast/slow wave, dispatching to a shock or a rarefaction by the sign of `pressure_downstream - upstream_state.pressure`."""
     c_fast_upstream, c_slow_upstream = mhd_state.compute_fast_slow_speeds(
         state=upstream_state,
@@ -78,7 +78,7 @@ def _solve_wave(
             pressure_downstream=pressure_downstream,
             initial_relative_speed_guess=-wave_speed_sign * reference_speed_upstream,
         )
-        return downstream_state, WaveInfo(
+        return downstream_state, WavePropagation(
             wave_type=WaveType.Shock,
             head_speed=shock_speed,
             tail_speed=shock_speed,
@@ -99,7 +99,7 @@ def _solve_wave(
     reference_speed_downstream = c_fast_downstream if wave_family == WaveFamily.Fast else c_slow_downstream
     head_speed = upstream_state.velocity_normal + wave_speed_sign * reference_speed_upstream
     tail_speed = downstream_state.velocity_normal + wave_speed_sign * reference_speed_downstream
-    return downstream_state, WaveInfo(
+    return downstream_state, WavePropagation(
         wave_type=WaveType.Rarefaction,
         head_speed=min(head_speed, tail_speed),
         tail_speed=max(head_speed, tail_speed),
@@ -111,9 +111,9 @@ def _compute_rotation_wave_info(
     upstream_state: PrimitiveState,
     magnetic_field_normal: float,
     sign: float,
-) -> WaveInfo:
+) -> WavePropagation:
     speed = upstream_state.velocity_normal - sign * magnetic_field_normal / numpy.sqrt(upstream_state.density)
-    return WaveInfo(
+    return WavePropagation(
         wave_type=WaveType.Shock,
         head_speed=speed,
         tail_speed=speed,
@@ -141,12 +141,12 @@ class _WaveRegions:
     region5: PrimitiveState
     region6: PrimitiveState
     region7: PrimitiveState
-    fast_left: WaveInfo
-    rotation_left: WaveInfo
-    slow_left: WaveInfo
-    slow_right: WaveInfo
-    rotation_right: WaveInfo
-    fast_right: WaveInfo
+    fast_left: WavePropagation
+    rotation_left: WavePropagation
+    slow_left: WavePropagation
+    slow_right: WavePropagation
+    rotation_right: WavePropagation
+    fast_right: WavePropagation
 
 
 ##
@@ -190,13 +190,13 @@ class RiemannSolution:
     region6: PrimitiveState
     region7: PrimitiveState
     region8: PrimitiveState
-    fast_left: WaveInfo
-    rotation_left: WaveInfo
-    slow_left: WaveInfo
-    contact: WaveInfo
-    slow_right: WaveInfo
-    rotation_right: WaveInfo
-    fast_right: WaveInfo
+    fast_left: WavePropagation
+    rotation_left: WavePropagation
+    slow_left: WavePropagation
+    contact: WavePropagation
+    slow_right: WavePropagation
+    rotation_right: WavePropagation
+    fast_right: WavePropagation
 
 
 ##
@@ -335,7 +335,7 @@ def solve_riemann_problem(
         fast_left=region_set.fast_left,
         rotation_left=region_set.rotation_left,
         slow_left=region_set.slow_left,
-        contact=WaveInfo(
+        contact=WavePropagation(
             wave_type=WaveType.Shock,
             head_speed=contact_speed,
             tail_speed=contact_speed,
