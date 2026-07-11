@@ -141,9 +141,9 @@ def _compute_rotation_wave_info(
 class _WaveRegions:
     """
     The 6 solved waves of the fan, each paired with the constant state
-    immediately to its right; `region1`/`region8` are the caller-given
-    boundary states, so they and the contact wave (synthesized afterwards
-    from `slow_left`) are not included here.
+    immediately to its right; the caller-given `left_state`/`right_state`
+    boundaries, and the contact wave (synthesized afterwards from
+    `slow_left`), are not included here.
     """
 
     fast_left: Wave
@@ -167,7 +167,7 @@ class RiemannSolution:
 
     Fields
     ---
-    - `region1`:
+    - `left_state`:
         The given left state.
 
     - `fast_left`, `rotation_left`, `slow_left`, `contact`, `slow_right`,
@@ -177,7 +177,7 @@ class RiemannSolution:
         given right state).
     """
 
-    region1: PrimitiveState
+    left_state: PrimitiveState
     fast_left: Wave
     rotation_left: Wave
     slow_left: Wave
@@ -328,7 +328,7 @@ def solve_riemann_problem(
     region_set = build_regions(solution.x)
     contact_speed = region_set.slow_left.state.velocity_normal
     return RiemannSolution(
-        region1=left_state,
+        left_state=left_state,
         fast_left=region_set.fast_left,
         rotation_left=region_set.rotation_left,
         slow_left=region_set.slow_left,
@@ -377,7 +377,7 @@ def sample_profile(
     profile: list[PrimitiveState] = []
     for position in x:
         self_similar_speed = (position - x0) / t
-        state = solution.region1
+        state = solution.left_state
         for wave in waves:
             if self_similar_speed < wave.wave_propagation.head_speed:
                 break

@@ -151,7 +151,7 @@ class TestSampleProfile_ReturnsCorrectRegion(unittest.TestCase):
         x0 = 0.5
         sample_positions = numpy.array([0.0, 0.4, 0.58, 0.62, 0.69, 1.0])
         expected_regions = [
-            solution.region1,
+            solution.left_state,
             solution.fast_left.state,
             solution.slow_left.state,
             solution.contact.state,
