@@ -118,7 +118,7 @@ def _solve_wave(
     )
 
 
-def _compute_rotation_wave_info(
+def _compute_rotation_discontinuity_propagation(
     *,
     upstream_state: PrimitiveState,
     magnetic_field_normal: float,
@@ -280,7 +280,7 @@ def solve_riemann_problem(
             angle=params.left_rotation_angle,
             sign=left_rotation_sign,
         )
-        left_rotation_discontinuity_propagation = _compute_rotation_wave_info(
+        left_rotation_discontinuity_propagation = _compute_rotation_discontinuity_propagation(
             upstream_state=left_fast_wave_downstream_state,
             magnetic_field_normal=magnetic_field_normal,
             sign=left_rotation_sign,
@@ -306,7 +306,7 @@ def solve_riemann_problem(
             angle=params.right_rotation_angle,
             sign=right_rotation_sign,
         )
-        right_rotation_discontinuity_propagation = _compute_rotation_wave_info(
+        right_rotation_discontinuity_propagation = _compute_rotation_discontinuity_propagation(
             upstream_state=right_fast_wave_downstream_state,
             magnetic_field_normal=magnetic_field_normal,
             sign=right_rotation_sign,
