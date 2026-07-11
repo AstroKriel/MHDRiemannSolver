@@ -174,10 +174,10 @@ def as_primitive(
     gamma: float,
 ) -> PrimitiveState:
     """Return `conserved` resolved to its primitive-variable representation."""
-    density, mom_0, mom_1, mom_2, magnetic_field_transverse_1, magnetic_field_transverse_2, energy = conserved
-    velocity_normal = mom_0 / density
-    velocity_transverse_1 = mom_1 / density
-    velocity_transverse_2 = mom_2 / density
+    density, momentum_0, momentum_1, momentum_2, magnetic_field_transverse_1, magnetic_field_transverse_2, energy = conserved
+    velocity_normal = momentum_0 / density
+    velocity_transverse_1 = momentum_1 / density
+    velocity_transverse_2 = momentum_2 / density
     kinetic_energy = 0.5 * density * (
         velocity_normal**2 + velocity_transverse_1**2 + velocity_transverse_2**2
     )

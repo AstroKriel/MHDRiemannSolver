@@ -5,7 +5,8 @@
 ##
 
 ## stdlib
-from typing import Any
+from dataclasses import dataclass
+from typing import Any, Self, TypeAlias
 
 ## third-party
 import numpy
@@ -65,6 +66,45 @@ def _build_shock_downstream_candidate(
 
 
 ##
+## === SHOCK PARAMETERS
+##
+
+## flattened, positionally-fixed encoding of a `_ShockParams`, for `scipy.optimize.root`
+_ShockParamsVector: TypeAlias = NDArray[Any]
+
+
+@dataclass(frozen=True)
+class _ShockParams:
+    """The 2 free parameters root-found to satisfy the shock jump conditions."""
+
+    mass_flux: float
+    density_downstream: float
+
+    @classmethod
+    def from_params_vector(
+        cls,
+        *,
+        params_vector: _ShockParamsVector,
+    ) -> Self:
+        mass_flux, density_downstream = params_vector
+        return cls(
+            mass_flux=mass_flux,
+            density_downstream=density_downstream,
+        )
+
+
+def _as_params_vector(
+    *,
+    shock_params: _ShockParams,
+) -> _ShockParamsVector:
+    """Return `shock_params` flattened to the vector `scipy.optimize.root` operates on."""
+    return numpy.array([
+        shock_params.mass_flux,
+        shock_params.density_downstream,
+    ], )
+
+
+##
 ## === SHOCK SOLVE
 ##
 
@@ -90,19 +130,21 @@ def solve_shock(
         `-c_fast`/`-c_slow` if it's the right state; the sign fixes which shock
         branch is found.
     """
-    initial_mass_flux = upstream_state.density * initial_relative_speed_guess
-    initial_density_downstream = upstream_state.density * (pressure_downstream /
-                                                           upstream_state.pressure)**(1.0 / gamma)
+    initial_guess = _ShockParams(
+        mass_flux=upstream_state.density * initial_relative_speed_guess,
+        density_downstream=upstream_state.density *
+        (pressure_downstream / upstream_state.pressure)**(1.0 / gamma),
+    )
 
-    def residuals(
-        unknowns: NDArray[Any],
+    def compute_shock_jump_residual(
+        params_vector: _ShockParamsVector,
     ) -> NDArray[Any]:
-        mass_flux, density_downstream = unknowns
+        shock_params = _ShockParams.from_params_vector(params_vector=params_vector)
         downstream_state, shock_speed = _build_shock_downstream_candidate(
             upstream_state=upstream_state,
             magnetic_field_normal=magnetic_field_normal,
-            mass_flux=mass_flux,
-            density_downstream=density_downstream,
+            mass_flux=shock_params.mass_flux,
+            density_downstream=shock_params.density_downstream,
             pressure_downstream=pressure_downstream,
         )
         full_residual = rankine_hugoniot.compute_jump_residual(
@@ -114,19 +156,19 @@ def solve_shock(
         )
         return numpy.array([full_residual[1], full_residual[6]])
 
-    solution = scipy_root(
-        residuals,
-        x0=numpy.array([initial_mass_flux, initial_density_downstream]),
+    shock_jump_root = scipy_root(
+        compute_shock_jump_residual,
+        x0=_as_params_vector(shock_params=initial_guess),
         method="hybr",
     )
-    if not solution.success:
-        raise RuntimeError(f"shock jump-condition root-find did not converge: {solution.message}.")
-    mass_flux, density_downstream = solution.x
+    if not shock_jump_root.success:
+        raise RuntimeError(f"shock jump-condition root-find did not converge: {shock_jump_root.message}.")
+    shock_params = _ShockParams.from_params_vector(params_vector=shock_jump_root.x)
     return _build_shock_downstream_candidate(
         upstream_state=upstream_state,
         magnetic_field_normal=magnetic_field_normal,
-        mass_flux=mass_flux,
-        density_downstream=density_downstream,
+        mass_flux=shock_params.mass_flux,
+        density_downstream=shock_params.density_downstream,
         pressure_downstream=pressure_downstream,
     )
 

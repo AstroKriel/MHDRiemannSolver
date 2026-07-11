@@ -151,7 +151,9 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
             places=3,
         )
         self.assertAlmostEqual(
-            riemann_solution.contact.wave_propagation.head_speed, expected_contact, places=3
+            riemann_solution.contact.wave_propagation.head_speed,
+            expected_contact,
+            places=3,
         )
         self.assertAlmostEqual(
             riemann_solution.right_slow_wave.wave_propagation.head_speed,

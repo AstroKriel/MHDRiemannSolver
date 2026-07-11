@@ -48,10 +48,10 @@ def _as_primitive_vector(
 
 def _state_from_primitive_vector(
     *,
-    vector: PrimitiveVector,
+    primitive_vector: PrimitiveVector,
 ) -> PrimitiveState:
     density, velocity_normal, velocity_transverse_1, velocity_transverse_2, magnetic_field_transverse_1, magnetic_field_transverse_2, pressure = (
-        vector
+        primitive_vector
     )
     return PrimitiveState(
         density=density,
@@ -99,7 +99,7 @@ def _compute_primitive_eigensystem(
         vector: NDArray[Any],
     ) -> NDArray[Any]:
         return mhd_state.compute_flux(
-            state=_state_from_primitive_vector(vector=vector),
+            state=_state_from_primitive_vector(primitive_vector=vector),
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
         )
@@ -108,7 +108,7 @@ def _compute_primitive_eigensystem(
         vector: NDArray[Any],
     ) -> NDArray[Any]:
         return mhd_state.as_conserved(
-            state=_state_from_primitive_vector(vector=vector),
+            state=_state_from_primitive_vector(primitive_vector=vector),
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
         )
@@ -177,8 +177,8 @@ def solve_rarefaction(
         magnetic_field_normal=magnetic_field_normal,
         gamma=gamma,
     )
-    reference_speed = c_fast if wave_family == WaveFamily.Fast else c_slow
-    target_eigenvalue = upstream_state.velocity_normal + wave_speed_sign * reference_speed
+    c_upstream = c_fast if wave_family == WaveFamily.Fast else c_slow
+    target_eigenvalue = upstream_state.velocity_normal + wave_speed_sign * c_upstream
     entropy_constant = upstream_state.pressure / upstream_state.density**gamma
 
     def rhs(
@@ -213,7 +213,7 @@ def solve_rarefaction(
             upstream_state.magnetic_field_transverse_2,
         ],
     )
-    solution = scipy_solve_ivp(
+    rarefaction_ode_solution = scipy_solve_ivp(
         rhs,
         (upstream_state.pressure, pressure_downstream),
         initial_vector,
@@ -221,9 +221,9 @@ def solve_rarefaction(
         rtol=1e-10,
         atol=1e-12,
     )
-    if not solution.success:
-        raise RuntimeError(f"rarefaction ode integration failed: {solution.message}.")
-    velocity_normal, velocity_transverse_1, velocity_transverse_2, magnetic_field_transverse_1, magnetic_field_transverse_2 = solution.y[
+    if not rarefaction_ode_solution.success:
+        raise RuntimeError(f"rarefaction ode integration failed: {rarefaction_ode_solution.message}.")
+    velocity_normal, velocity_transverse_1, velocity_transverse_2, magnetic_field_transverse_1, magnetic_field_transverse_2 = rarefaction_ode_solution.y[
         :,
         -1,
     ]

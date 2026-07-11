@@ -124,9 +124,11 @@ def _compute_rotation_discontinuity_propagation(
     *,
     upstream_state: PrimitiveState,
     magnetic_field_normal: float,
-    sign: float,
+    rotation_sign: float,
 ) -> WavePropagation:
-    speed = upstream_state.velocity_normal - sign * magnetic_field_normal / numpy.sqrt(upstream_state.density)
+    speed = upstream_state.velocity_normal - rotation_sign * magnetic_field_normal / numpy.sqrt(
+        upstream_state.density,
+    )
     return WavePropagation(
         wave_type=WaveType.Shock,
         head_speed=speed,
@@ -267,7 +269,7 @@ def solve_riemann_problem(
     left_rotation_sign = 1.0 if magnetic_field_normal >= 0.0 else -1.0
     right_rotation_sign = -left_rotation_sign
 
-    def build_regions(
+    def build_region_set(
         riemann_params: _RiemannParams,
     ) -> _WaveRegions:
         left_fast_wave_downstream_state, left_fast_wave_propagation = _solve_wave(
@@ -281,12 +283,12 @@ def solve_riemann_problem(
         left_rotation_discontinuity_downstream_state = rotational_discontinuity.apply_rotation(
             upstream_state=left_fast_wave_downstream_state,
             angle=riemann_params.left_rotation_angle,
-            sign=left_rotation_sign,
+            rotation_sign=left_rotation_sign,
         )
         left_rotation_discontinuity_propagation = _compute_rotation_discontinuity_propagation(
             upstream_state=left_fast_wave_downstream_state,
             magnetic_field_normal=magnetic_field_normal,
-            sign=left_rotation_sign,
+            rotation_sign=left_rotation_sign,
         )
         left_slow_wave_downstream_state, left_slow_wave_propagation = _solve_wave(
             upstream_state=left_rotation_discontinuity_downstream_state,
@@ -307,12 +309,12 @@ def solve_riemann_problem(
         right_rotation_discontinuity_downstream_state = rotational_discontinuity.apply_rotation(
             upstream_state=right_fast_wave_downstream_state,
             angle=riemann_params.right_rotation_angle,
-            sign=right_rotation_sign,
+            rotation_sign=right_rotation_sign,
         )
         right_rotation_discontinuity_propagation = _compute_rotation_discontinuity_propagation(
             upstream_state=right_fast_wave_downstream_state,
             magnetic_field_normal=magnetic_field_normal,
-            sign=right_rotation_sign,
+            rotation_sign=right_rotation_sign,
         )
         right_slow_wave_downstream_state, right_slow_wave_propagation = _solve_wave(
             upstream_state=right_rotation_discontinuity_downstream_state,
@@ -353,7 +355,7 @@ def solve_riemann_problem(
     def compute_contact_residual(
         params_vector: _ParamsVector,
     ) -> NDArray[Any]:
-        region_set = build_regions(_RiemannParams.from_params_vector(params_vector=params_vector))
+        region_set = build_region_set(_RiemannParams.from_params_vector(params_vector=params_vector))
         left_slow_wave_state = region_set.left_slow_wave.state
         contact_state = region_set.contact_state
         return numpy.array(
@@ -380,7 +382,7 @@ def solve_riemann_problem(
     )
     if not contact_residual_root.success:
         raise RuntimeError(f"riemann-problem root-find did not converge: {contact_residual_root.message}.")
-    region_set = build_regions(
+    region_set = build_region_set(
         _RiemannParams.from_params_vector(params_vector=contact_residual_root.x),
     )
     contact_speed = region_set.left_slow_wave.state.velocity_normal
