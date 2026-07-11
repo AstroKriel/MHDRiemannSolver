@@ -150,19 +150,23 @@ def as_conserved(
     gamma: float,
 ) -> ConservedVector:
     """Return `state` resolved to its conserved-variable representation."""
+    momentum_0 = state.density * state.velocity_normal
+    momentum_1 = state.density * state.velocity_transverse_1
+    momentum_2 = state.density * state.velocity_transverse_2
+    energy = compute_energy(
+        state=state,
+        magnetic_field_normal=magnetic_field_normal,
+        gamma=gamma,
+    )
     return numpy.array(
         [
             state.density,
-            state.density * state.velocity_normal,
-            state.density * state.velocity_transverse_1,
-            state.density * state.velocity_transverse_2,
+            momentum_0,
+            momentum_1,
+            momentum_2,
             state.magnetic_field_transverse_1,
             state.magnetic_field_transverse_2,
-            compute_energy(
-                state=state,
-                magnetic_field_normal=magnetic_field_normal,
-                gamma=gamma,
-            ),
+            energy,
         ],
     )
 

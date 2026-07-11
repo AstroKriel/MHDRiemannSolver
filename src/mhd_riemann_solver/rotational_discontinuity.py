@@ -52,13 +52,19 @@ def apply_rotation(
     delta_magnetic_field_transverse_1 = new_magnetic_field_transverse_1 - upstream_state.magnetic_field_transverse_1
     delta_magnetic_field_transverse_2 = new_magnetic_field_transverse_2 - upstream_state.magnetic_field_transverse_2
     inverse_sqrt_density = 1.0 / numpy.sqrt(upstream_state.density)
+    velocity_transverse_1_downstream = (
+        upstream_state.velocity_transverse_1 +
+        rotation_sign * delta_magnetic_field_transverse_1 * inverse_sqrt_density
+    )
+    velocity_transverse_2_downstream = (
+        upstream_state.velocity_transverse_2 +
+        rotation_sign * delta_magnetic_field_transverse_2 * inverse_sqrt_density
+    )
     return PrimitiveState(
         density=upstream_state.density,
         velocity_normal=upstream_state.velocity_normal,
-        velocity_transverse_1=upstream_state.velocity_transverse_1 +
-        rotation_sign * delta_magnetic_field_transverse_1 * inverse_sqrt_density,
-        velocity_transverse_2=upstream_state.velocity_transverse_2 +
-        rotation_sign * delta_magnetic_field_transverse_2 * inverse_sqrt_density,
+        velocity_transverse_1=velocity_transverse_1_downstream,
+        velocity_transverse_2=velocity_transverse_2_downstream,
         magnetic_field_transverse_1=new_magnetic_field_transverse_1,
         magnetic_field_transverse_2=new_magnetic_field_transverse_2,
         pressure=upstream_state.pressure,

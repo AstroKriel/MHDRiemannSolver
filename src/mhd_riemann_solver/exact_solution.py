@@ -351,13 +351,26 @@ def solve_riemann_problem(
         region_set = build_region_set(_RiemannParams.from_params_vector(params_vector=params_vector))
         left_slow_wave_state = region_set.left_slow_wave.state
         contact_state = region_set.contact_state
+        velocity_normal_residual = left_slow_wave_state.velocity_normal - contact_state.velocity_normal
+        velocity_transverse_1_residual = (
+            left_slow_wave_state.velocity_transverse_1 - contact_state.velocity_transverse_1
+        )
+        velocity_transverse_2_residual = (
+            left_slow_wave_state.velocity_transverse_2 - contact_state.velocity_transverse_2
+        )
+        magnetic_field_transverse_1_residual = (
+            left_slow_wave_state.magnetic_field_transverse_1 - contact_state.magnetic_field_transverse_1
+        )
+        magnetic_field_transverse_2_residual = (
+            left_slow_wave_state.magnetic_field_transverse_2 - contact_state.magnetic_field_transverse_2
+        )
         return numpy.array(
             [
-                left_slow_wave_state.velocity_normal - contact_state.velocity_normal,
-                left_slow_wave_state.velocity_transverse_1 - contact_state.velocity_transverse_1,
-                left_slow_wave_state.velocity_transverse_2 - contact_state.velocity_transverse_2,
-                left_slow_wave_state.magnetic_field_transverse_1 - contact_state.magnetic_field_transverse_1,
-                left_slow_wave_state.magnetic_field_transverse_2 - contact_state.magnetic_field_transverse_2,
+                velocity_normal_residual,
+                velocity_transverse_1_residual,
+                velocity_transverse_2_residual,
+                magnetic_field_transverse_1_residual,
+                magnetic_field_transverse_2_residual,
             ],
         )
 

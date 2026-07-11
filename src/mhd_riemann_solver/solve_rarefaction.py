@@ -181,8 +181,9 @@ def solve_rarefaction(
         pressure: float,
         state_vector: NDArray[Any],
     ) -> NDArray[Any]:
+        density = (pressure / entropy_constant)**(1.0 / gamma)
         state = PrimitiveState(
-            density=(pressure / entropy_constant)**(1.0 / gamma),
+            density=density,
             velocity_normal=state_vector[0],
             velocity_transverse_1=state_vector[1],
             velocity_transverse_2=state_vector[2],
@@ -218,8 +219,9 @@ def solve_rarefaction(
     if not rarefaction_ode_solution.success:
         raise RuntimeError(f"rarefaction ode integration failed: {rarefaction_ode_solution.message}.")
     final_state_vector = rarefaction_ode_solution.y[:, -1]
+    density_downstream = (pressure_downstream / entropy_constant)**(1.0 / gamma)
     return PrimitiveState(
-        density=(pressure_downstream / entropy_constant)**(1.0 / gamma),
+        density=density_downstream,
         velocity_normal=final_state_vector[0],
         velocity_transverse_1=final_state_vector[1],
         velocity_transverse_2=final_state_vector[2],

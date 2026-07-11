@@ -129,10 +129,12 @@ def solve_shock(
         `-c_fast`/`-c_slow` if it's the right state; the sign fixes which shock
         branch is found.
     """
+    initial_mass_flux = upstream_state.density * initial_relative_speed_guess
+    initial_density_downstream = upstream_state.density * (pressure_downstream /
+                                                           upstream_state.pressure)**(1.0 / gamma)
     initial_guess = _ShockParams(
-        mass_flux=upstream_state.density * initial_relative_speed_guess,
-        density_downstream=upstream_state.density *
-        (pressure_downstream / upstream_state.pressure)**(1.0 / gamma),
+        mass_flux=initial_mass_flux,
+        density_downstream=initial_density_downstream,
     )
 
     def compute_shock_jump_residual(
