@@ -23,7 +23,7 @@ from riemann_solver.mhd_state import PrimitiveState, WaveFamily
 ##
 
 
-class WaveKind(str, Enum):
+class WaveType(str, Enum):
     Shock = "shock"
     Rarefaction = "rarefaction"
 
@@ -35,16 +35,16 @@ class WaveInfo:
 
     Fields
     ---
-    - `kind`:
-        `WaveKind.Shock` for a shock, rotational discontinuity, or contact (all
-        sharp, `head_speed == tail_speed`); `WaveKind.Rarefaction` for a
+    - `wave_type`:
+        `WaveType.Shock` for a shock, rotational discontinuity, or contact (all
+        sharp, `head_speed == tail_speed`); `WaveType.Rarefaction` for a
         rarefaction fan, spanning `[head_speed, tail_speed]`.
 
     - `head_speed`, `tail_speed`:
-        Propagation speed(s) of the wave; equal for `WaveKind.Shock`.
+        Propagation speed(s) of the wave; equal for `WaveType.Shock`.
     """
 
-    kind: WaveKind
+    wave_type: WaveType
     head_speed: float
     tail_speed: float
 
@@ -64,22 +64,22 @@ def _solve_wave(
     wave_speed_sign: float,
 ) -> tuple[PrimitiveState, WaveInfo]:
     """Solve one fast/slow wave, dispatching to a shock or a rarefaction by the sign of `pressure_downstream - upstream_state.pressure`."""
-    c_fast_up, c_slow_up = mhd_state.compute_fast_slow_speeds(
+    c_fast_upstream, c_slow_upstream = mhd_state.compute_fast_slow_speeds(
         state=upstream_state,
         magnetic_field_normal=magnetic_field_normal,
         gamma=gamma,
     )
-    reference_speed_up = c_fast_up if wave_family == WaveFamily.Fast else c_slow_up
+    reference_speed_upstream = c_fast_upstream if wave_family == WaveFamily.Fast else c_slow_upstream
     if pressure_downstream > upstream_state.pressure:
         downstream_state, shock_speed = solve_shock.solve_shock(
             upstream_state=upstream_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
             pressure_downstream=pressure_downstream,
-            initial_relative_speed_guess=-wave_speed_sign * reference_speed_up,
+            initial_relative_speed_guess=-wave_speed_sign * reference_speed_upstream,
         )
         return downstream_state, WaveInfo(
-            kind=WaveKind.Shock,
+            wave_type=WaveType.Shock,
             head_speed=shock_speed,
             tail_speed=shock_speed,
         )
@@ -91,16 +91,16 @@ def _solve_wave(
         wave_family=wave_family,
         wave_speed_sign=wave_speed_sign,
     )
-    c_fast_down, c_slow_down = mhd_state.compute_fast_slow_speeds(
+    c_fast_downstream, c_slow_downstream = mhd_state.compute_fast_slow_speeds(
         state=downstream_state,
         magnetic_field_normal=magnetic_field_normal,
         gamma=gamma,
     )
-    reference_speed_down = c_fast_down if wave_family == WaveFamily.Fast else c_slow_down
-    head_speed = upstream_state.velocity_normal + wave_speed_sign * reference_speed_up
-    tail_speed = downstream_state.velocity_normal + wave_speed_sign * reference_speed_down
+    reference_speed_downstream = c_fast_downstream if wave_family == WaveFamily.Fast else c_slow_downstream
+    head_speed = upstream_state.velocity_normal + wave_speed_sign * reference_speed_upstream
+    tail_speed = downstream_state.velocity_normal + wave_speed_sign * reference_speed_downstream
     return downstream_state, WaveInfo(
-        kind=WaveKind.Rarefaction,
+        wave_type=WaveType.Rarefaction,
         head_speed=min(head_speed, tail_speed),
         tail_speed=max(head_speed, tail_speed),
     )
@@ -114,20 +114,26 @@ def _compute_rotation_wave_info(
 ) -> WaveInfo:
     speed = upstream_state.velocity_normal - sign * magnetic_field_normal / numpy.sqrt(upstream_state.density)
     return WaveInfo(
-        kind=WaveKind.Shock,
+        wave_type=WaveType.Shock,
         head_speed=speed,
         tail_speed=speed,
     )
 
 
 ##
-## === REGION SET
+## === WAVE REGIONS
 ##
 
 
 @dataclass(frozen=True)
-class _RegionSet:
-    """The 6 solved intermediate states and their bounding waves, for one candidate root-find unknown vector."""
+class _WaveRegions:
+    """
+    The 6 solved intermediate states and their bounding waves, for one candidate
+    root-find unknown vector.
+
+    Numbered `region2`-`region7` to align with `RiemannSolution`'s numbering:
+    `region1`/`region8` are the caller-given boundary states, not solved here.
+    """
 
     region2: PrimitiveState
     region3: PrimitiveState
@@ -216,7 +222,7 @@ def solve_riemann_problem(
 
     def build_regions(
         unknowns: NDArray[Any],
-    ) -> _RegionSet:
+    ) -> _WaveRegions:
         pressure_2, psi_left, pressure_star, psi_right, pressure_7 = unknowns
         region2_state, fast_left = _solve_wave(
             upstream_state=left_state,
@@ -270,7 +276,7 @@ def solve_riemann_problem(
             wave_family=WaveFamily.Slow,
             wave_speed_sign=1.0,
         )
-        return _RegionSet(
+        return _WaveRegions(
             region2=region2_state,
             region3=region3_state,
             region4=region4_state,
@@ -330,7 +336,7 @@ def solve_riemann_problem(
         rotation_left=region_set.rotation_left,
         slow_left=region_set.slow_left,
         contact=WaveInfo(
-            kind=WaveKind.Shock,
+            wave_type=WaveType.Shock,
             head_speed=contact_speed,
             tail_speed=contact_speed,
         ),
@@ -375,7 +381,7 @@ def sample_profile(
         for wave, right_state in waves:
             if self_similar_speed < wave.head_speed:
                 break
-            if wave.kind == WaveKind.Rarefaction and self_similar_speed < wave.tail_speed:
+            if wave.wave_type == WaveType.Rarefaction and self_similar_speed < wave.tail_speed:
                 raise NotImplementedError(
                     f"position `{position}` at t=`{t}` falls inside a rarefaction fan; "
                     "fan-interior sampling is not yet supported.",
