@@ -7,7 +7,7 @@
 ## stdlib
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, TypeAlias
 
 ## third-party
 import numpy
@@ -189,13 +189,16 @@ class RiemannSolution:
 
 
 ##
-## === RIEMANN UNKNOWNS
+## === RIEMANN PARAMETERS
 ##
+
+## flattened, positionally-fixed encoding of a `_RiemannParams`, for `scipy.optimize.root`
+_ParamsVector: TypeAlias = NDArray[Any]
 
 
 @dataclass(frozen=True)
-class _RiemannUnknowns:
-    """The 5 unknowns root-found to pin down the fan."""
+class _RiemannParams:
+    """The 5 free parameters root-found to pin down the fan."""
 
     left_fast_wave_downstream_pressure: float
     left_rotation_angle: float
@@ -204,34 +207,34 @@ class _RiemannUnknowns:
     right_fast_wave_downstream_pressure: float
 
 
-def _as_unknowns_vector(
+def _as_params_vector(
     *,
-    unknowns: _RiemannUnknowns,
-) -> NDArray[Any]:
-    """Return `unknowns` flattened to the vector `scipy.optimize.root` operates on."""
+    params: _RiemannParams,
+) -> _ParamsVector:
+    """Return `params` flattened to the vector `scipy.optimize.root` operates on."""
     return numpy.array(
         [
-            unknowns.left_fast_wave_downstream_pressure,
-            unknowns.left_rotation_angle,
-            unknowns.pressure_star,
-            unknowns.right_rotation_angle,
-            unknowns.right_fast_wave_downstream_pressure,
+            params.left_fast_wave_downstream_pressure,
+            params.left_rotation_angle,
+            params.pressure_star,
+            params.right_rotation_angle,
+            params.right_fast_wave_downstream_pressure,
         ],
     )
 
 
-def _unknowns_from_vector(
+def _params_from_vector(
     *,
-    vector: NDArray[Any],
-) -> _RiemannUnknowns:
+    params_vector: _ParamsVector,
+) -> _RiemannParams:
     (
         left_fast_wave_downstream_pressure,
         left_rotation_angle,
         pressure_star,
         right_rotation_angle,
         right_fast_wave_downstream_pressure,
-    ) = vector
-    return _RiemannUnknowns(
+    ) = params_vector
+    return _RiemannParams(
         left_fast_wave_downstream_pressure=left_fast_wave_downstream_pressure,
         left_rotation_angle=left_rotation_angle,
         pressure_star=pressure_star,
@@ -254,7 +257,7 @@ def solve_riemann_problem(
 ) -> RiemannSolution:
     """
     Solve the full 7-wave 1D ideal-MHD Riemann problem, root-finding the 5
-    unknowns that pin down the fan; whether each fast/slow wave is a shock or
+    parameters that pin down the fan; whether each fast/slow wave is a shock or
     a rarefaction falls out of the solve, not assumed up front (see `_solve_wave`).
     """
     ## rotation signs fixed by the eigenvalue ordering u-|bx|/sqrt(rho) < ... < u+|bx|/sqrt(rho)
@@ -262,19 +265,19 @@ def solve_riemann_problem(
     right_rotation_sign = -left_rotation_sign
 
     def build_regions(
-        unknowns: _RiemannUnknowns,
+        params: _RiemannParams,
     ) -> _WaveRegions:
         left_fast_wave_downstream_state, left_fast_wave_propagation = _solve_wave(
             upstream_state=left_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
-            pressure_downstream=unknowns.left_fast_wave_downstream_pressure,
+            pressure_downstream=params.left_fast_wave_downstream_pressure,
             wave_family=WaveFamily.Fast,
             wave_speed_sign=-1.0,
         )
         left_rotation_discontinuity_downstream_state = rotational_discontinuity.apply_rotation(
             upstream_state=left_fast_wave_downstream_state,
-            angle=unknowns.left_rotation_angle,
+            angle=params.left_rotation_angle,
             sign=left_rotation_sign,
         )
         left_rotation_discontinuity_propagation = _compute_rotation_wave_info(
@@ -286,7 +289,7 @@ def solve_riemann_problem(
             upstream_state=left_rotation_discontinuity_downstream_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
-            pressure_downstream=unknowns.pressure_star,
+            pressure_downstream=params.pressure_star,
             wave_family=WaveFamily.Slow,
             wave_speed_sign=-1.0,
         )
@@ -294,13 +297,13 @@ def solve_riemann_problem(
             upstream_state=right_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
-            pressure_downstream=unknowns.right_fast_wave_downstream_pressure,
+            pressure_downstream=params.right_fast_wave_downstream_pressure,
             wave_family=WaveFamily.Fast,
             wave_speed_sign=1.0,
         )
         right_rotation_discontinuity_downstream_state = rotational_discontinuity.apply_rotation(
             upstream_state=right_fast_wave_downstream_state,
-            angle=unknowns.right_rotation_angle,
+            angle=params.right_rotation_angle,
             sign=right_rotation_sign,
         )
         right_rotation_discontinuity_propagation = _compute_rotation_wave_info(
@@ -312,7 +315,7 @@ def solve_riemann_problem(
             upstream_state=right_rotation_discontinuity_downstream_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
-            pressure_downstream=unknowns.pressure_star,
+            pressure_downstream=params.pressure_star,
             wave_family=WaveFamily.Slow,
             wave_speed_sign=1.0,
         )
@@ -345,9 +348,9 @@ def solve_riemann_problem(
         )
 
     def compute_contact_residual(
-        vector: NDArray[Any],
+        params_vector: _ParamsVector,
     ) -> NDArray[Any]:
-        region_set = build_regions(_unknowns_from_vector(vector=vector))
+        region_set = build_regions(_params_from_vector(params_vector=params_vector))
         left_slow_wave_state = region_set.left_slow_wave.state
         contact_state = region_set.contact_state
         return numpy.array(
@@ -360,7 +363,7 @@ def solve_riemann_problem(
             ],
         )
 
-    initial_guess = _RiemannUnknowns(
+    initial_guess = _RiemannParams(
         left_fast_wave_downstream_pressure=left_state.pressure * 1.2,
         left_rotation_angle=0.0,
         pressure_star=0.5 * (left_state.pressure + right_state.pressure),
@@ -369,13 +372,13 @@ def solve_riemann_problem(
     )
     solution = scipy_root(
         compute_contact_residual,
-        x0=_as_unknowns_vector(unknowns=initial_guess),
+        x0=_as_params_vector(params=initial_guess),
         method="hybr",
     )
     if not solution.success:
         raise RuntimeError(f"riemann-problem root-find did not converge: {solution.message}.")
 
-    region_set = build_regions(_unknowns_from_vector(vector=solution.x))
+    region_set = build_regions(_params_from_vector(params_vector=solution.x))
     contact_speed = region_set.left_slow_wave.state.velocity_normal
     return RiemannSolution(
         left_state=left_state,
