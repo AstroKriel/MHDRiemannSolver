@@ -232,16 +232,16 @@ class _RiemannParams:
 
 def _as_params_vector(
     *,
-    params: _RiemannParams,
+    riemann_params: _RiemannParams,
 ) -> _ParamsVector:
-    """Return `params` flattened to the vector `scipy.optimize.root` operates on."""
+    """Return `riemann_params` flattened to the vector `scipy.optimize.root` operates on."""
     return numpy.array(
         [
-            params.left_fast_wave_downstream_pressure,
-            params.left_rotation_angle,
-            params.pressure_star,
-            params.right_rotation_angle,
-            params.right_fast_wave_downstream_pressure,
+            riemann_params.left_fast_wave_downstream_pressure,
+            riemann_params.left_rotation_angle,
+            riemann_params.pressure_star,
+            riemann_params.right_rotation_angle,
+            riemann_params.right_fast_wave_downstream_pressure,
         ],
     )
 
@@ -268,19 +268,19 @@ def solve_riemann_problem(
     right_rotation_sign = -left_rotation_sign
 
     def build_regions(
-        params: _RiemannParams,
+        riemann_params: _RiemannParams,
     ) -> _WaveRegions:
         left_fast_wave_downstream_state, left_fast_wave_propagation = _solve_wave(
             upstream_state=left_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
-            pressure_downstream=params.left_fast_wave_downstream_pressure,
+            pressure_downstream=riemann_params.left_fast_wave_downstream_pressure,
             wave_family=WaveFamily.Fast,
             wave_speed_sign=-1.0,
         )
         left_rotation_discontinuity_downstream_state = rotational_discontinuity.apply_rotation(
             upstream_state=left_fast_wave_downstream_state,
-            angle=params.left_rotation_angle,
+            angle=riemann_params.left_rotation_angle,
             sign=left_rotation_sign,
         )
         left_rotation_discontinuity_propagation = _compute_rotation_discontinuity_propagation(
@@ -292,7 +292,7 @@ def solve_riemann_problem(
             upstream_state=left_rotation_discontinuity_downstream_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
-            pressure_downstream=params.pressure_star,
+            pressure_downstream=riemann_params.pressure_star,
             wave_family=WaveFamily.Slow,
             wave_speed_sign=-1.0,
         )
@@ -300,13 +300,13 @@ def solve_riemann_problem(
             upstream_state=right_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
-            pressure_downstream=params.right_fast_wave_downstream_pressure,
+            pressure_downstream=riemann_params.right_fast_wave_downstream_pressure,
             wave_family=WaveFamily.Fast,
             wave_speed_sign=1.0,
         )
         right_rotation_discontinuity_downstream_state = rotational_discontinuity.apply_rotation(
             upstream_state=right_fast_wave_downstream_state,
-            angle=params.right_rotation_angle,
+            angle=riemann_params.right_rotation_angle,
             sign=right_rotation_sign,
         )
         right_rotation_discontinuity_propagation = _compute_rotation_discontinuity_propagation(
@@ -318,7 +318,7 @@ def solve_riemann_problem(
             upstream_state=right_rotation_discontinuity_downstream_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
-            pressure_downstream=params.pressure_star,
+            pressure_downstream=riemann_params.pressure_star,
             wave_family=WaveFamily.Slow,
             wave_speed_sign=1.0,
         )
@@ -375,7 +375,7 @@ def solve_riemann_problem(
     )
     contact_residual_root = scipy_root(
         compute_contact_residual,
-        x0=_as_params_vector(params=initial_guess),
+        x0=_as_params_vector(riemann_params=initial_guess),
         method="hybr",
     )
     if not contact_residual_root.success:
