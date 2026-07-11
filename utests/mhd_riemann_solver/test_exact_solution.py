@@ -20,11 +20,11 @@ from riemann_solver.mhd_state import PrimitiveState
 ##
 
 
-class TestSolveRiemannProblem_RJ2a(unittest.TestCase):
+class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
     """
-    Cross-check against the RJ2a reference from Ryu & Jones (1995), ApJ 442, 228,
-    Figure 2a, using the region densities hardcoded in athenak's own regression
-    test (`tst/test_suite/nr/test_nr_rj2a_cpu.py`): an independent, previously
+    Cross-check against the Ryu & Jones (1995), ApJ 442, 228, Figure 2a reference,
+    using the region densities hardcoded in athenak's own regression test
+    (`tst/test_suite/nr/test_nr_rj2a_cpu.py`): an independent, previously
     published solution this solver was not tuned against.
     """
 
@@ -71,8 +71,8 @@ class TestSolveRiemannProblem_RJ2a(unittest.TestCase):
     ):
         """
         Cross-check against the same wave-speed formulas hardcoded in athenak's
-        RJ2a regression test (`compute_error` in `test_nr_rj2a_cpu.py`), sourced
-        independently of this solver.
+        Ryu-Jones 2a regression test (`compute_error` in `test_nr_rj2a_cpu.py`),
+        sourced independently of this solver.
         """
         left = PrimitiveState(rho=1.08, u=1.2, v=0.01, w=0.5, by=1.0155412503859613, bz=0.5641895835477562, p=0.95)
         right = PrimitiveState(rho=1.0, u=0.0, v=0.0, w=0.0, by=1.1283791670955125, bz=0.5641895835477562, p=1.0)

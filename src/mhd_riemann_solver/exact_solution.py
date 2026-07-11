@@ -228,7 +228,7 @@ def evaluate(
     Raises `NotImplementedError` if any sample falls strictly inside a
     rarefaction fan: this solver resolves the 8 constant states and each wave's
     head/tail speed exactly, but does not yet interpolate the smooth profile
-    inside a fan (not needed for RJ2a, whose 4 fast/slow waves are all shocks
+    inside a fan (not needed for Ryu-Jones 2a, whose 4 fast/slow waves are all shocks
     for the standard left/right states).
     """
     waves = [

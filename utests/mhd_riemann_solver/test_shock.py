@@ -19,7 +19,7 @@ from riemann_solver.shock import solve_shock
 
 class TestSolveShock_JumpConditions(unittest.TestCase):
 
-    def test_fast_shock_from_rj2a_left_state_satisfies_rankine_hugoniot(
+    def test_fast_shock_from_ryu_jones_2a_left_state_satisfies_rankine_hugoniot(
         self,
     ):
         upstream = PrimitiveState(rho=1.08, u=1.2, v=0.01, w=0.5, by=1.0155412503859613, bz=0.5641895835477562, p=0.95)
@@ -43,7 +43,7 @@ class TestSolveShock_JumpConditions(unittest.TestCase):
         for component in residual:
             self.assertAlmostEqual(float(component), 0.0, places=8)
 
-    def test_slow_shock_from_rj2a_right_state_satisfies_rankine_hugoniot(
+    def test_slow_shock_from_ryu_jones_2a_right_state_satisfies_rankine_hugoniot(
         self,
     ):
         upstream = PrimitiveState(rho=1.0, u=0.0, v=0.0, w=0.0, by=1.1283791670955125, bz=0.5641895835477562, p=1.0)

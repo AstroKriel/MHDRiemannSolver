@@ -35,7 +35,7 @@ class TestWaveSpeeds_Ordering(unittest.TestCase):
         self.assertLessEqual(c_slow, c_alfven + 1e-12)
         self.assertLessEqual(c_alfven, c_fast + 1e-12)
 
-    def test_slow_le_alfven_le_fast_for_rj2a_right_state(
+    def test_slow_le_alfven_le_fast_for_ryu_jones_2a_right_state(
         self,
     ):
         state = PrimitiveState(rho=1.0, u=0.0, v=0.0, w=0.0, by=1.1283791670955125, bz=0.5641895835477562, p=1.0)
