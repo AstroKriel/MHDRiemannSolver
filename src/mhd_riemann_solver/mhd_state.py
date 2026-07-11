@@ -6,6 +6,7 @@
 
 ## stdlib
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, TypeAlias
 
 ## third-party
@@ -16,8 +17,18 @@ from numpy.typing import NDArray
 ## === TYPE ALIASES
 ##
 
-## conserved vector: [rho, rho*u, rho*v, rho*w, by, bz, energy]
+## conserved vector: [density, momentum_0, momentum_1, momentum_2, magnetic_field_transverse_1, magnetic_field_transverse_2, energy]
 ConservedVector: TypeAlias = NDArray[Any]
+
+##
+## === WAVE FAMILY
+##
+
+
+class WaveFamily(str, Enum):
+    Fast = "fast"
+    Slow = "slow"
+
 
 ##
 ## === PRIMITIVE STATE
@@ -27,25 +38,39 @@ ConservedVector: TypeAlias = NDArray[Any]
 @dataclass(frozen=True)
 class PrimitiveState:
     """
-    A pointwise ideal-MHD primitive state; `u` is the direction-normal velocity,
-    `v`/`w` and `by`/`bz` are the two transverse components.
+    A pointwise ideal-MHD primitive state.
 
-    `bx` is not stored here: it is one constant shared by the whole Riemann
-    problem, not a per-region unknown, so callers thread it through separately.
+    `magnetic_field_normal` (`bx`) is not stored here: it is one constant shared
+    by the whole Riemann problem, not a per-region unknown, so callers thread it
+    through separately.
+
+    Fields
+    ---
+    - `density`, `pressure`:
+        Scalar thermodynamic state.
+
+    - `velocity_normal`:
+        Velocity component along the shared normal direction (`magnetic_field_normal`).
+
+    - `velocity_transverse_1`, `velocity_transverse_2`:
+        Velocity components in the plane transverse to the normal direction.
+
+    - `magnetic_field_transverse_1`, `magnetic_field_transverse_2`:
+        Magnetic field components in the plane transverse to the normal direction.
     """
 
-    rho: float
-    u: float
-    v: float
-    w: float
-    by: float
-    bz: float
-    p: float
+    density: float
+    velocity_normal: float
+    velocity_transverse_1: float
+    velocity_transverse_2: float
+    magnetic_field_transverse_1: float
+    magnetic_field_transverse_2: float
+    pressure: float
 
     @property
-    def bt(self) -> float:
-        """Magnitude of the transverse field (by, bz)."""
-        return float(numpy.hypot(self.by, self.bz))
+    def magnetic_field_transverse_magnitude(self) -> float:
+        """Magnitude of the transverse field (`magnetic_field_transverse_1`, `magnetic_field_transverse_2`)."""
+        return float(numpy.hypot(self.magnetic_field_transverse_1, self.magnetic_field_transverse_2))
 
 
 ##
@@ -58,29 +83,34 @@ def compute_sound_speed(
     state: PrimitiveState,
     gamma: float,
 ) -> float:
-    return float(numpy.sqrt(gamma * state.p / state.rho))
+    """Return the adiabatic sound speed of `state`."""
+    return float(numpy.sqrt(gamma * state.pressure / state.density))
 
 
 def compute_alfven_speed(
     *,
     state: PrimitiveState,
-    bx: float,
+    magnetic_field_normal: float,
 ) -> float:
-    return float(numpy.abs(bx) / numpy.sqrt(state.rho))
+    """Return the Alfven speed of `state` along `magnetic_field_normal`."""
+    return float(numpy.abs(magnetic_field_normal) / numpy.sqrt(state.density))
 
 
 def compute_fast_slow_speeds(
     *,
     state: PrimitiveState,
-    bx: float,
+    magnetic_field_normal: float,
     gamma: float,
 ) -> tuple[float, float]:
     """
-    Return `(c_fast, c_slow)`, the fast/slow magnetosonic speeds normal to `bx`.
+    Return `(c_fast, c_slow)`, the fast/slow magnetosonic speeds normal to
+    `magnetic_field_normal`.
     """
-    sound_speed_sq = gamma * state.p / state.rho
-    total_alfven_speed_sq = (bx**2 + state.by**2 + state.bz**2) / state.rho
-    normal_alfven_speed_sq = bx**2 / state.rho
+    sound_speed_sq = gamma * state.pressure / state.density
+    total_alfven_speed_sq = (
+        magnetic_field_normal**2 + state.magnetic_field_transverse_1**2 + state.magnetic_field_transverse_2**2
+    ) / state.density
+    normal_alfven_speed_sq = magnetic_field_normal**2 / state.density
     discriminant = (sound_speed_sq + total_alfven_speed_sq) ** 2 - 4.0 * sound_speed_sq * normal_alfven_speed_sq
     root = numpy.sqrt(max(discriminant, 0.0))
     c_fast = numpy.sqrt(0.5 * (sound_speed_sq + total_alfven_speed_sq + root))
@@ -96,67 +126,87 @@ def compute_fast_slow_speeds(
 def compute_energy(
     *,
     state: PrimitiveState,
-    bx: float,
+    magnetic_field_normal: float,
     gamma: float,
 ) -> float:
-    kinetic_energy = 0.5 * state.rho * (state.u**2 + state.v**2 + state.w**2)
-    magnetic_energy = 0.5 * (bx**2 + state.by**2 + state.bz**2)
-    internal_energy = state.p / (gamma - 1.0)
+    """Return the total energy density of `state` (internal + kinetic + magnetic)."""
+    kinetic_energy = 0.5 * state.density * (state.velocity_normal**2 + state.velocity_transverse_1**2 + state.velocity_transverse_2**2)
+    magnetic_energy = 0.5 * (magnetic_field_normal**2 + state.magnetic_field_transverse_1**2 + state.magnetic_field_transverse_2**2)
+    internal_energy = state.pressure / (gamma - 1.0)
     return internal_energy + kinetic_energy + magnetic_energy
 
 
-def primitive_to_conserved(
+def as_conserved(
     *,
     state: PrimitiveState,
-    bx: float,
+    magnetic_field_normal: float,
     gamma: float,
 ) -> ConservedVector:
+    """Return `state` resolved to its conserved-variable representation."""
     return numpy.array(
         [
-            state.rho,
-            state.rho * state.u,
-            state.rho * state.v,
-            state.rho * state.w,
-            state.by,
-            state.bz,
-            compute_energy(state=state, bx=bx, gamma=gamma),
+            state.density,
+            state.density * state.velocity_normal,
+            state.density * state.velocity_transverse_1,
+            state.density * state.velocity_transverse_2,
+            state.magnetic_field_transverse_1,
+            state.magnetic_field_transverse_2,
+            compute_energy(state=state, magnetic_field_normal=magnetic_field_normal, gamma=gamma),
         ],
     )
 
 
-def conserved_to_primitive(
+def as_primitive(
     *,
     conserved: ConservedVector,
-    bx: float,
+    magnetic_field_normal: float,
     gamma: float,
 ) -> PrimitiveState:
-    rho, mom_u, mom_v, mom_w, by, bz, energy = conserved
-    u = mom_u / rho
-    v = mom_v / rho
-    w = mom_w / rho
-    kinetic_energy = 0.5 * rho * (u**2 + v**2 + w**2)
-    magnetic_energy = 0.5 * (bx**2 + by**2 + bz**2)
-    p = (energy - kinetic_energy - magnetic_energy) * (gamma - 1.0)
-    return PrimitiveState(rho=rho, u=u, v=v, w=w, by=by, bz=bz, p=p)
+    """Return `conserved` resolved to its primitive-variable representation."""
+    density, mom_0, mom_1, mom_2, magnetic_field_transverse_1, magnetic_field_transverse_2, energy = conserved
+    velocity_normal = mom_0 / density
+    velocity_transverse_1 = mom_1 / density
+    velocity_transverse_2 = mom_2 / density
+    kinetic_energy = 0.5 * density * (velocity_normal**2 + velocity_transverse_1**2 + velocity_transverse_2**2)
+    magnetic_energy = 0.5 * (magnetic_field_normal**2 + magnetic_field_transverse_1**2 + magnetic_field_transverse_2**2)
+    pressure = (energy - kinetic_energy - magnetic_energy) * (gamma - 1.0)
+    return PrimitiveState(
+        density=density,
+        velocity_normal=velocity_normal,
+        velocity_transverse_1=velocity_transverse_1,
+        velocity_transverse_2=velocity_transverse_2,
+        magnetic_field_transverse_1=magnetic_field_transverse_1,
+        magnetic_field_transverse_2=magnetic_field_transverse_2,
+        pressure=pressure,
+    )
 
 
 def compute_flux(
     *,
     state: PrimitiveState,
-    bx: float,
+    magnetic_field_normal: float,
     gamma: float,
 ) -> ConservedVector:
-    total_pressure = state.p + 0.5 * (bx**2 + state.by**2 + state.bz**2)
-    energy = compute_energy(state=state, bx=bx, gamma=gamma)
+    """Return the ideal-MHD flux vector of `state`."""
+    total_pressure = state.pressure + 0.5 * (
+        magnetic_field_normal**2 + state.magnetic_field_transverse_1**2 + state.magnetic_field_transverse_2**2
+    )
+    energy = compute_energy(state=state, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
     return numpy.array(
         [
-            state.rho * state.u,
-            state.rho * state.u**2 + total_pressure - bx**2,
-            state.rho * state.u * state.v - bx * state.by,
-            state.rho * state.u * state.w - bx * state.bz,
-            state.u * state.by - state.v * bx,
-            state.u * state.bz - state.w * bx,
-            state.u * (energy + total_pressure) - bx * (state.u * bx + state.v * state.by + state.w * state.bz),
+            state.density * state.velocity_normal,
+            state.density * state.velocity_normal**2 + total_pressure - magnetic_field_normal**2,
+            state.density * state.velocity_normal * state.velocity_transverse_1 - magnetic_field_normal * state.magnetic_field_transverse_1,
+            state.density * state.velocity_normal * state.velocity_transverse_2 - magnetic_field_normal * state.magnetic_field_transverse_2,
+            state.velocity_normal * state.magnetic_field_transverse_1 - state.velocity_transverse_1 * magnetic_field_normal,
+            state.velocity_normal * state.magnetic_field_transverse_2 - state.velocity_transverse_2 * magnetic_field_normal,
+            state.velocity_normal * (energy + total_pressure)
+            - magnetic_field_normal
+            * (
+                state.velocity_normal * magnetic_field_normal
+                + state.velocity_transverse_1 * state.magnetic_field_transverse_1
+                + state.velocity_transverse_2 * state.magnetic_field_transverse_2
+            ),
         ],
     )
 

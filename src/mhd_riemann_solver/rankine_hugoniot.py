@@ -5,7 +5,8 @@
 ##
 
 ## local
-from riemann_solver.mhd_state import ConservedVector, PrimitiveState, compute_flux, primitive_to_conserved
+from riemann_solver import mhd_state
+from riemann_solver.mhd_state import ConservedVector, PrimitiveState
 
 ##
 ## === JUMP-CONDITION RESIDUAL
@@ -16,7 +17,7 @@ def compute_jump_residual(
     *,
     upstream: PrimitiveState,
     downstream: PrimitiveState,
-    bx: float,
+    magnetic_field_normal: float,
     gamma: float,
     shock_speed: float,
 ) -> ConservedVector:
@@ -26,10 +27,10 @@ def compute_jump_residual(
     any valid discontinuity (shock, contact, or rotational). Zero means `upstream`
     and `downstream` are consistent jump states for that `shock_speed`.
     """
-    upstream_conserved = primitive_to_conserved(state=upstream, bx=bx, gamma=gamma)
-    downstream_conserved = primitive_to_conserved(state=downstream, bx=bx, gamma=gamma)
-    upstream_flux = compute_flux(state=upstream, bx=bx, gamma=gamma)
-    downstream_flux = compute_flux(state=downstream, bx=bx, gamma=gamma)
+    upstream_conserved = mhd_state.as_conserved(state=upstream, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
+    downstream_conserved = mhd_state.as_conserved(state=downstream, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
+    upstream_flux = mhd_state.compute_flux(state=upstream, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
+    downstream_flux = mhd_state.compute_flux(state=downstream, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
     upstream_term = upstream_flux - shock_speed * upstream_conserved
     downstream_term = downstream_flux - shock_speed * downstream_conserved
     return upstream_term - downstream_term

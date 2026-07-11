@@ -12,8 +12,33 @@ import unittest
 import numpy
 
 ## local
-from riemann_solver.exact_solution import evaluate, solve_riemann_problem
+from riemann_solver import exact_solution
 from riemann_solver.mhd_state import PrimitiveState
+
+##
+## === FIXTURES
+##
+
+_LEFT_STATE = PrimitiveState(
+    density=1.08,
+    velocity_normal=1.2,
+    velocity_transverse_1=0.01,
+    velocity_transverse_2=0.5,
+    magnetic_field_transverse_1=1.0155412503859613,
+    magnetic_field_transverse_2=0.5641895835477562,
+    pressure=0.95,
+)
+_RIGHT_STATE = PrimitiveState(
+    density=1.0,
+    velocity_normal=0.0,
+    velocity_transverse_1=0.0,
+    velocity_transverse_2=0.0,
+    magnetic_field_transverse_1=1.1283791670955125,
+    magnetic_field_transverse_2=0.5641895835477562,
+    pressure=1.0,
+)
+_MAGNETIC_FIELD_NORMAL = 0.5641895835477562
+_GAMMA = 5.0 / 3.0
 
 ##
 ## === TEST SUITE
@@ -31,40 +56,43 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
     def test_region_densities_match_ryu_jones_1995(
         self,
     ):
-        left = PrimitiveState(rho=1.08, u=1.2, v=0.01, w=0.5, by=1.0155412503859613, bz=0.5641895835477562, p=0.95)
-        right = PrimitiveState(rho=1.0, u=0.0, v=0.0, w=0.0, by=1.1283791670955125, bz=0.5641895835477562, p=1.0)
-        bx = 0.5641895835477562
-        gamma = 5.0 / 3.0
-        solution = solve_riemann_problem(left=left, right=right, bx=bx, gamma=gamma)
-        self.assertAlmostEqual(solution.region2.rho, 1.4903, places=3)
-        self.assertAlmostEqual(solution.region3.rho, 1.4903, places=3)
-        self.assertAlmostEqual(solution.region4.rho, 1.6343, places=3)
-        self.assertAlmostEqual(solution.region5.rho, 1.4735, places=3)
-        self.assertAlmostEqual(solution.region6.rho, 1.3090, places=3)
-        self.assertAlmostEqual(solution.region7.rho, 1.3090, places=3)
+        solution = exact_solution.solve_riemann_problem(
+            left=_LEFT_STATE,
+            right=_RIGHT_STATE,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+            gamma=_GAMMA,
+        )
+        self.assertAlmostEqual(solution.region2.density, 1.4903, places=3)
+        self.assertAlmostEqual(solution.region3.density, 1.4903, places=3)
+        self.assertAlmostEqual(solution.region4.density, 1.6343, places=3)
+        self.assertAlmostEqual(solution.region5.density, 1.4735, places=3)
+        self.assertAlmostEqual(solution.region6.density, 1.3090, places=3)
+        self.assertAlmostEqual(solution.region7.density, 1.3090, places=3)
 
     def test_rotational_discontinuities_preserve_density(
         self,
     ):
-        left = PrimitiveState(rho=1.08, u=1.2, v=0.01, w=0.5, by=1.0155412503859613, bz=0.5641895835477562, p=0.95)
-        right = PrimitiveState(rho=1.0, u=0.0, v=0.0, w=0.0, by=1.1283791670955125, bz=0.5641895835477562, p=1.0)
-        bx = 0.5641895835477562
-        gamma = 5.0 / 3.0
-        solution = solve_riemann_problem(left=left, right=right, bx=bx, gamma=gamma)
-        self.assertAlmostEqual(solution.region2.rho, solution.region3.rho, places=8)
-        self.assertAlmostEqual(solution.region6.rho, solution.region7.rho, places=8)
+        solution = exact_solution.solve_riemann_problem(
+            left=_LEFT_STATE,
+            right=_RIGHT_STATE,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+            gamma=_GAMMA,
+        )
+        self.assertAlmostEqual(solution.region2.density, solution.region3.density, places=8)
+        self.assertAlmostEqual(solution.region6.density, solution.region7.density, places=8)
 
     def test_contact_matches_pressure_and_velocity_not_density(
         self,
     ):
-        left = PrimitiveState(rho=1.08, u=1.2, v=0.01, w=0.5, by=1.0155412503859613, bz=0.5641895835477562, p=0.95)
-        right = PrimitiveState(rho=1.0, u=0.0, v=0.0, w=0.0, by=1.1283791670955125, bz=0.5641895835477562, p=1.0)
-        bx = 0.5641895835477562
-        gamma = 5.0 / 3.0
-        solution = solve_riemann_problem(left=left, right=right, bx=bx, gamma=gamma)
-        self.assertAlmostEqual(solution.region4.p, solution.region5.p, places=6)
-        self.assertAlmostEqual(solution.region4.u, solution.region5.u, places=6)
-        self.assertNotAlmostEqual(solution.region4.rho, solution.region5.rho, places=2)
+        solution = exact_solution.solve_riemann_problem(
+            left=_LEFT_STATE,
+            right=_RIGHT_STATE,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+            gamma=_GAMMA,
+        )
+        self.assertAlmostEqual(solution.region4.pressure, solution.region5.pressure, places=6)
+        self.assertAlmostEqual(solution.region4.velocity_normal, solution.region5.velocity_normal, places=6)
+        self.assertNotAlmostEqual(solution.region4.density, solution.region5.density, places=2)
 
     def test_wave_speeds_match_ryu_jones_1995(
         self,
@@ -74,11 +102,12 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
         Ryu-Jones 2a regression test (`compute_error` in `test_nr_rj2a_cpu.py`),
         sourced independently of this solver.
         """
-        left = PrimitiveState(rho=1.08, u=1.2, v=0.01, w=0.5, by=1.0155412503859613, bz=0.5641895835477562, p=0.95)
-        right = PrimitiveState(rho=1.0, u=0.0, v=0.0, w=0.0, by=1.1283791670955125, bz=0.5641895835477562, p=1.0)
-        bx = 0.5641895835477562
-        gamma = 5.0 / 3.0
-        solution = solve_riemann_problem(left=left, right=right, bx=bx, gamma=gamma)
+        solution = exact_solution.solve_riemann_problem(
+            left=_LEFT_STATE,
+            right=_RIGHT_STATE,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+            gamma=_GAMMA,
+        )
         expected_fast_left = 1.2 - 2.3305 / 1.08
         expected_rotation_left = 0.60588 - 1.0 / math.sqrt(math.pi * 1.4903)
         expected_slow_left = 0.60588 - 0.51594 / 1.4903
@@ -95,16 +124,17 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
         self.assertAlmostEqual(solution.fast_right.head_speed, expected_fast_right, places=3)
 
 
-class TestEvaluate_SamplesCorrectRegion(unittest.TestCase):
+class TestSampleProfile_ReturnsCorrectRegion(unittest.TestCase):
 
-    def test_evaluate_returns_expected_region_at_sample_points(
+    def test_sample_profile_returns_expected_region_at_sample_points(
         self,
     ):
-        left = PrimitiveState(rho=1.08, u=1.2, v=0.01, w=0.5, by=1.0155412503859613, bz=0.5641895835477562, p=0.95)
-        right = PrimitiveState(rho=1.0, u=0.0, v=0.0, w=0.0, by=1.1283791670955125, bz=0.5641895835477562, p=1.0)
-        bx = 0.5641895835477562
-        gamma = 5.0 / 3.0
-        solution = solve_riemann_problem(left=left, right=right, bx=bx, gamma=gamma)
+        solution = exact_solution.solve_riemann_problem(
+            left=_LEFT_STATE,
+            right=_RIGHT_STATE,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+            gamma=_GAMMA,
+        )
         t = 0.2
         x0 = 0.5
         sample_positions = numpy.array([0.0, 0.4, 0.58, 0.62, 0.69, 1.0])
@@ -116,9 +146,9 @@ class TestEvaluate_SamplesCorrectRegion(unittest.TestCase):
             solution.region6,
             solution.region8,
         ]
-        profile = evaluate(solution=solution, x=sample_positions, t=t, x0=x0)
+        profile = exact_solution.sample_profile(solution=solution, x=sample_positions, t=t, x0=x0)
         for expected_region, got_state in zip(expected_regions, profile):
-            self.assertAlmostEqual(got_state.rho, expected_region.rho, places=8)
+            self.assertAlmostEqual(got_state.density, expected_region.density, places=8)
 
 
 ##

@@ -11,9 +11,33 @@ import unittest
 import numpy
 
 ## local
+from riemann_solver import rankine_hugoniot, rotational_discontinuity
 from riemann_solver.mhd_state import PrimitiveState
-from riemann_solver.rankine_hugoniot import compute_jump_residual
-from riemann_solver.rotational_discontinuity import apply_rotation
+
+##
+## === FIXTURES
+##
+
+_LEFT_STATE = PrimitiveState(
+    density=1.08,
+    velocity_normal=1.2,
+    velocity_transverse_1=0.01,
+    velocity_transverse_2=0.5,
+    magnetic_field_transverse_1=1.0155412503859613,
+    magnetic_field_transverse_2=0.5641895835477562,
+    pressure=0.95,
+)
+_RIGHT_STATE = PrimitiveState(
+    density=1.0,
+    velocity_normal=0.0,
+    velocity_transverse_1=0.0,
+    velocity_transverse_2=0.0,
+    magnetic_field_transverse_1=1.1283791670955125,
+    magnetic_field_transverse_2=0.5641895835477562,
+    pressure=1.0,
+)
+_MAGNETIC_FIELD_NORMAL = 0.5641895835477562
+_GAMMA = 5.0 / 3.0
 
 ##
 ## === TEST SUITE
@@ -25,18 +49,15 @@ class TestRotationalDiscontinuity_JumpConditions(unittest.TestCase):
     def test_sign_negative_rotation_satisfies_rankine_hugoniot(
         self,
     ):
-        upstream = PrimitiveState(rho=1.08, u=1.2, v=0.01, w=0.5, by=1.0155412503859613, bz=0.5641895835477562, p=0.95)
-        bx = 0.5641895835477562
-        gamma = 5.0 / 3.0
         angle = 0.7
         sign = -1.0
-        downstream = apply_rotation(upstream=upstream, angle=angle, sign=sign)
-        shock_speed = upstream.u - sign * bx / numpy.sqrt(upstream.rho)
-        residual = compute_jump_residual(
-            upstream=upstream,
+        downstream = rotational_discontinuity.apply_rotation(upstream=_LEFT_STATE, angle=angle, sign=sign)
+        shock_speed = _LEFT_STATE.velocity_normal - sign * _MAGNETIC_FIELD_NORMAL / numpy.sqrt(_LEFT_STATE.density)
+        residual = rankine_hugoniot.compute_jump_residual(
+            upstream=_LEFT_STATE,
             downstream=downstream,
-            bx=bx,
-            gamma=gamma,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+            gamma=_GAMMA,
             shock_speed=shock_speed,
         )
         for component in residual:
@@ -45,18 +66,15 @@ class TestRotationalDiscontinuity_JumpConditions(unittest.TestCase):
     def test_sign_positive_rotation_satisfies_rankine_hugoniot(
         self,
     ):
-        upstream = PrimitiveState(rho=1.0, u=0.0, v=0.0, w=0.0, by=1.1283791670955125, bz=0.5641895835477562, p=1.0)
-        bx = 0.5641895835477562
-        gamma = 5.0 / 3.0
         angle = -0.35
         sign = 1.0
-        downstream = apply_rotation(upstream=upstream, angle=angle, sign=sign)
-        shock_speed = upstream.u - sign * bx / numpy.sqrt(upstream.rho)
-        residual = compute_jump_residual(
-            upstream=upstream,
+        downstream = rotational_discontinuity.apply_rotation(upstream=_RIGHT_STATE, angle=angle, sign=sign)
+        shock_speed = _RIGHT_STATE.velocity_normal - sign * _MAGNETIC_FIELD_NORMAL / numpy.sqrt(_RIGHT_STATE.density)
+        residual = rankine_hugoniot.compute_jump_residual(
+            upstream=_RIGHT_STATE,
             downstream=downstream,
-            bx=bx,
-            gamma=gamma,
+            magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
+            gamma=_GAMMA,
             shock_speed=shock_speed,
         )
         for component in residual:
@@ -65,12 +83,11 @@ class TestRotationalDiscontinuity_JumpConditions(unittest.TestCase):
     def test_rotation_preserves_density_pressure_and_normal_velocity(
         self,
     ):
-        upstream = PrimitiveState(rho=1.08, u=1.2, v=0.01, w=0.5, by=1.0155412503859613, bz=0.5641895835477562, p=0.95)
-        downstream = apply_rotation(upstream=upstream, angle=1.1, sign=-1.0)
-        self.assertAlmostEqual(downstream.rho, upstream.rho, places=12)
-        self.assertAlmostEqual(downstream.u, upstream.u, places=12)
-        self.assertAlmostEqual(downstream.p, upstream.p, places=12)
-        self.assertAlmostEqual(downstream.bt, upstream.bt, places=12)
+        downstream = rotational_discontinuity.apply_rotation(upstream=_LEFT_STATE, angle=1.1, sign=-1.0)
+        self.assertAlmostEqual(downstream.density, _LEFT_STATE.density, places=12)
+        self.assertAlmostEqual(downstream.velocity_normal, _LEFT_STATE.velocity_normal, places=12)
+        self.assertAlmostEqual(downstream.pressure, _LEFT_STATE.pressure, places=12)
+        self.assertAlmostEqual(downstream.magnetic_field_transverse_magnitude, _LEFT_STATE.magnetic_field_transverse_magnitude, places=12)
 
 
 ##
