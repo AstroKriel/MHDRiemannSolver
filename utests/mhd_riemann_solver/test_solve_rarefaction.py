@@ -103,7 +103,7 @@ class TestSolveRarefaction_WeakWaveLimit(unittest.TestCase):
         c_fast, _ = mhd_state.compute_fast_slow_speeds(state=_LEFT_STATE, magnetic_field_normal=_MAGNETIC_FIELD_NORMAL, gamma=_GAMMA)
         delta_p = 1e-4
         rarefaction_state = solve_rarefaction.solve_rarefaction(
-            upstream=_LEFT_STATE,
+            upstream_state=_LEFT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
             pressure_downstream=_LEFT_STATE.pressure - delta_p,
@@ -111,7 +111,7 @@ class TestSolveRarefaction_WeakWaveLimit(unittest.TestCase):
             wave_speed_sign=-1.0,
         )
         shock_state, _ = solve_shock.solve_shock(
-            upstream=_LEFT_STATE,
+            upstream_state=_LEFT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
             pressure_downstream=_LEFT_STATE.pressure - delta_p,
@@ -127,7 +127,7 @@ class TestSolveRarefaction_WeakWaveLimit(unittest.TestCase):
         _, c_slow = mhd_state.compute_fast_slow_speeds(state=_RIGHT_STATE, magnetic_field_normal=_MAGNETIC_FIELD_NORMAL, gamma=_GAMMA)
         delta_p = 1e-4
         rarefaction_state = solve_rarefaction.solve_rarefaction(
-            upstream=_RIGHT_STATE,
+            upstream_state=_RIGHT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
             pressure_downstream=_RIGHT_STATE.pressure + delta_p,
@@ -135,7 +135,7 @@ class TestSolveRarefaction_WeakWaveLimit(unittest.TestCase):
             wave_speed_sign=1.0,
         )
         shock_state, _ = solve_shock.solve_shock(
-            upstream=_RIGHT_STATE,
+            upstream_state=_RIGHT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
             pressure_downstream=_RIGHT_STATE.pressure + delta_p,

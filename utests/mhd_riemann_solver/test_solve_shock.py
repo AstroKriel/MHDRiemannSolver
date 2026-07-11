@@ -47,16 +47,16 @@ class TestSolveShock_JumpConditions(unittest.TestCase):
         self,
     ):
         c_fast, _ = mhd_state.compute_fast_slow_speeds(state=_LEFT_STATE, magnetic_field_normal=_MAGNETIC_FIELD_NORMAL, gamma=_GAMMA)
-        downstream, shock_speed = solve_shock.solve_shock(
-            upstream=_LEFT_STATE,
+        downstream_state, shock_speed = solve_shock.solve_shock(
+            upstream_state=_LEFT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
             pressure_downstream=1.5,
             initial_relative_speed_guess=c_fast,
         )
         residual = rankine_hugoniot.compute_jump_residual(
-            upstream=_LEFT_STATE,
-            downstream=downstream,
+            upstream_state=_LEFT_STATE,
+            downstream_state=downstream_state,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
             shock_speed=shock_speed,
@@ -68,16 +68,16 @@ class TestSolveShock_JumpConditions(unittest.TestCase):
         self,
     ):
         _, c_slow = mhd_state.compute_fast_slow_speeds(state=_RIGHT_STATE, magnetic_field_normal=_MAGNETIC_FIELD_NORMAL, gamma=_GAMMA)
-        downstream, shock_speed = solve_shock.solve_shock(
-            upstream=_RIGHT_STATE,
+        downstream_state, shock_speed = solve_shock.solve_shock(
+            upstream_state=_RIGHT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
             pressure_downstream=1.3,
             initial_relative_speed_guess=-c_slow,
         )
         residual = rankine_hugoniot.compute_jump_residual(
-            upstream=_RIGHT_STATE,
-            downstream=downstream,
+            upstream_state=_RIGHT_STATE,
+            downstream_state=downstream_state,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
             shock_speed=shock_speed,
@@ -88,7 +88,7 @@ class TestSolveShock_JumpConditions(unittest.TestCase):
     def test_hydro_limit_satisfies_rankine_hugoniot(
         self,
     ):
-        upstream = PrimitiveState(
+        upstream_state = PrimitiveState(
             density=1.0,
             velocity_normal=0.0,
             velocity_transverse_1=0.0,
@@ -99,24 +99,24 @@ class TestSolveShock_JumpConditions(unittest.TestCase):
         )
         magnetic_field_normal = 0.0
         gamma = 1.4
-        c_fast, _ = mhd_state.compute_fast_slow_speeds(state=upstream, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
-        downstream, shock_speed = solve_shock.solve_shock(
-            upstream=upstream,
+        c_fast, _ = mhd_state.compute_fast_slow_speeds(state=upstream_state, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
+        downstream_state, shock_speed = solve_shock.solve_shock(
+            upstream_state=upstream_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
             pressure_downstream=2.0,
             initial_relative_speed_guess=c_fast,
         )
         residual = rankine_hugoniot.compute_jump_residual(
-            upstream=upstream,
-            downstream=downstream,
+            upstream_state=upstream_state,
+            downstream_state=downstream_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
             shock_speed=shock_speed,
         )
         for component in residual:
             self.assertAlmostEqual(float(component), 0.0, places=8)
-        self.assertGreater(downstream.density, upstream.density)
+        self.assertGreater(downstream_state.density, upstream_state.density)
 
 
 class TestSolveShock_TransverseFieldDirection(unittest.TestCase):
@@ -126,15 +126,15 @@ class TestSolveShock_TransverseFieldDirection(unittest.TestCase):
     ):
         """A shock (unlike a rotational discontinuity) only scales |Bt|; direction is fixed."""
         c_fast, _ = mhd_state.compute_fast_slow_speeds(state=_LEFT_STATE, magnetic_field_normal=_MAGNETIC_FIELD_NORMAL, gamma=_GAMMA)
-        downstream, _ = solve_shock.solve_shock(
-            upstream=_LEFT_STATE,
+        downstream_state, _ = solve_shock.solve_shock(
+            upstream_state=_LEFT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
             pressure_downstream=1.5,
             initial_relative_speed_guess=c_fast,
         )
         self.assertAlmostEqual(
-            downstream.magnetic_field_transverse_1 / downstream.magnetic_field_transverse_2,
+            downstream_state.magnetic_field_transverse_1 / downstream_state.magnetic_field_transverse_2,
             _LEFT_STATE.magnetic_field_transverse_1 / _LEFT_STATE.magnetic_field_transverse_2,
             places=10,
         )

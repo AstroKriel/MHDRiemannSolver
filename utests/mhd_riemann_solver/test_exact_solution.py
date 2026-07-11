@@ -57,8 +57,8 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
         self,
     ):
         solution = exact_solution.solve_riemann_problem(
-            left=_LEFT_STATE,
-            right=_RIGHT_STATE,
+            left_state=_LEFT_STATE,
+            right_state=_RIGHT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
         )
@@ -73,8 +73,8 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
         self,
     ):
         solution = exact_solution.solve_riemann_problem(
-            left=_LEFT_STATE,
-            right=_RIGHT_STATE,
+            left_state=_LEFT_STATE,
+            right_state=_RIGHT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
         )
@@ -85,8 +85,8 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
         self,
     ):
         solution = exact_solution.solve_riemann_problem(
-            left=_LEFT_STATE,
-            right=_RIGHT_STATE,
+            left_state=_LEFT_STATE,
+            right_state=_RIGHT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
         )
@@ -103,8 +103,8 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
         sourced independently of this solver.
         """
         solution = exact_solution.solve_riemann_problem(
-            left=_LEFT_STATE,
-            right=_RIGHT_STATE,
+            left_state=_LEFT_STATE,
+            right_state=_RIGHT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
         )
@@ -130,8 +130,8 @@ class TestSampleProfile_ReturnsCorrectRegion(unittest.TestCase):
         self,
     ):
         solution = exact_solution.solve_riemann_problem(
-            left=_LEFT_STATE,
-            right=_RIGHT_STATE,
+            left_state=_LEFT_STATE,
+            right_state=_RIGHT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
         )

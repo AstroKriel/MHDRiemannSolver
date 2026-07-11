@@ -32,12 +32,12 @@ def rotate_transverse_field(
 
 def apply_rotation(
     *,
-    upstream: PrimitiveState,
+    upstream_state: PrimitiveState,
     angle: float,
     sign: float,
 ) -> PrimitiveState:
     """
-    Apply a rotational discontinuity to `upstream`, rotating its transverse field
+    Apply a rotational discontinuity to `upstream_state`, rotating its transverse field
     by `angle` radians; density, pressure, and normal velocity are preserved.
 
     `sign` selects which characteristic branch this propagates along; whether a
@@ -45,21 +45,21 @@ def apply_rotation(
     the sign of `magnetic_field_normal`, not a fixed convention.
     """
     new_magnetic_field_transverse_1, new_magnetic_field_transverse_2 = rotate_transverse_field(
-        magnetic_field_transverse_1=upstream.magnetic_field_transverse_1,
-        magnetic_field_transverse_2=upstream.magnetic_field_transverse_2,
+        magnetic_field_transverse_1=upstream_state.magnetic_field_transverse_1,
+        magnetic_field_transverse_2=upstream_state.magnetic_field_transverse_2,
         angle=angle,
     )
-    delta_magnetic_field_transverse_1 = new_magnetic_field_transverse_1 - upstream.magnetic_field_transverse_1
-    delta_magnetic_field_transverse_2 = new_magnetic_field_transverse_2 - upstream.magnetic_field_transverse_2
-    inverse_sqrt_density = 1.0 / numpy.sqrt(upstream.density)
+    delta_magnetic_field_transverse_1 = new_magnetic_field_transverse_1 - upstream_state.magnetic_field_transverse_1
+    delta_magnetic_field_transverse_2 = new_magnetic_field_transverse_2 - upstream_state.magnetic_field_transverse_2
+    inverse_sqrt_density = 1.0 / numpy.sqrt(upstream_state.density)
     return PrimitiveState(
-        density=upstream.density,
-        velocity_normal=upstream.velocity_normal,
-        velocity_transverse_1=upstream.velocity_transverse_1 + sign * delta_magnetic_field_transverse_1 * inverse_sqrt_density,
-        velocity_transverse_2=upstream.velocity_transverse_2 + sign * delta_magnetic_field_transverse_2 * inverse_sqrt_density,
+        density=upstream_state.density,
+        velocity_normal=upstream_state.velocity_normal,
+        velocity_transverse_1=upstream_state.velocity_transverse_1 + sign * delta_magnetic_field_transverse_1 * inverse_sqrt_density,
+        velocity_transverse_2=upstream_state.velocity_transverse_2 + sign * delta_magnetic_field_transverse_2 * inverse_sqrt_density,
         magnetic_field_transverse_1=new_magnetic_field_transverse_1,
         magnetic_field_transverse_2=new_magnetic_field_transverse_2,
-        pressure=upstream.pressure,
+        pressure=upstream_state.pressure,
     )
 
 

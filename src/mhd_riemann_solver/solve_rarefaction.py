@@ -134,7 +134,7 @@ def _select_rarefaction_direction(
 
 def solve_rarefaction(
     *,
-    upstream: PrimitiveState,
+    upstream_state: PrimitiveState,
     magnetic_field_normal: float,
     gamma: float,
     pressure_downstream: float,
@@ -142,7 +142,7 @@ def solve_rarefaction(
     wave_speed_sign: float,
 ) -> PrimitiveState:
     """
-    Integrate the fast/slow simple-wave ODE from `upstream` to `pressure_downstream`;
+    Integrate the fast/slow simple-wave ODE from `upstream_state` to `pressure_downstream`;
     density follows the upstream entropy algebraically, since the wave is isentropic.
 
     Parameters
@@ -150,10 +150,10 @@ def solve_rarefaction(
     - `wave_speed_sign`:
         `+1.0` for the `velocity_normal + c` branch, `-1.0` for `velocity_normal - c`.
     """
-    c_fast, c_slow = mhd_state.compute_fast_slow_speeds(state=upstream, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
+    c_fast, c_slow = mhd_state.compute_fast_slow_speeds(state=upstream_state, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
     reference_speed = c_fast if wave_family == WaveFamily.Fast else c_slow
-    target_eigenvalue = upstream.velocity_normal + wave_speed_sign * reference_speed
-    entropy_constant = upstream.pressure / upstream.density**gamma
+    target_eigenvalue = upstream_state.velocity_normal + wave_speed_sign * reference_speed
+    entropy_constant = upstream_state.pressure / upstream_state.density**gamma
 
     def rhs(pressure: float, state_vector: NDArray[Any]) -> NDArray[Any]:
         velocity_normal, velocity_transverse_1, velocity_transverse_2, magnetic_field_transverse_1, magnetic_field_transverse_2 = state_vector
@@ -177,16 +177,16 @@ def solve_rarefaction(
 
     initial_vector = numpy.array(
         [
-            upstream.velocity_normal,
-            upstream.velocity_transverse_1,
-            upstream.velocity_transverse_2,
-            upstream.magnetic_field_transverse_1,
-            upstream.magnetic_field_transverse_2,
+            upstream_state.velocity_normal,
+            upstream_state.velocity_transverse_1,
+            upstream_state.velocity_transverse_2,
+            upstream_state.magnetic_field_transverse_1,
+            upstream_state.magnetic_field_transverse_2,
         ],
     )
     solution = scipy_solve_ivp(
         rhs,
-        (upstream.pressure, pressure_downstream),
+        (upstream_state.pressure, pressure_downstream),
         initial_vector,
         method="RK45",
         rtol=1e-10,

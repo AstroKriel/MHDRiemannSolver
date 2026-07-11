@@ -56,47 +56,47 @@ class WaveInfo:
 
 def _solve_wave(
     *,
-    upstream: PrimitiveState,
+    upstream_state: PrimitiveState,
     magnetic_field_normal: float,
     gamma: float,
     pressure_downstream: float,
     wave_family: WaveFamily,
     wave_speed_sign: float,
 ) -> tuple[PrimitiveState, WaveInfo]:
-    """Solve one fast/slow wave, dispatching to a shock or a rarefaction by the sign of `pressure_downstream - upstream.pressure`."""
-    c_fast_up, c_slow_up = mhd_state.compute_fast_slow_speeds(state=upstream, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
+    """Solve one fast/slow wave, dispatching to a shock or a rarefaction by the sign of `pressure_downstream - upstream_state.pressure`."""
+    c_fast_up, c_slow_up = mhd_state.compute_fast_slow_speeds(state=upstream_state, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
     reference_speed_up = c_fast_up if wave_family == WaveFamily.Fast else c_slow_up
-    if pressure_downstream > upstream.pressure:
-        downstream, shock_speed = solve_shock.solve_shock(
-            upstream=upstream,
+    if pressure_downstream > upstream_state.pressure:
+        downstream_state, shock_speed = solve_shock.solve_shock(
+            upstream_state=upstream_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
             pressure_downstream=pressure_downstream,
             initial_relative_speed_guess=-wave_speed_sign * reference_speed_up,
         )
-        return downstream, WaveInfo(kind=WaveKind.Shock, head_speed=shock_speed, tail_speed=shock_speed)
-    downstream = solve_rarefaction.solve_rarefaction(
-        upstream=upstream,
+        return downstream_state, WaveInfo(kind=WaveKind.Shock, head_speed=shock_speed, tail_speed=shock_speed)
+    downstream_state = solve_rarefaction.solve_rarefaction(
+        upstream_state=upstream_state,
         magnetic_field_normal=magnetic_field_normal,
         gamma=gamma,
         pressure_downstream=pressure_downstream,
         wave_family=wave_family,
         wave_speed_sign=wave_speed_sign,
     )
-    c_fast_down, c_slow_down = mhd_state.compute_fast_slow_speeds(state=downstream, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
+    c_fast_down, c_slow_down = mhd_state.compute_fast_slow_speeds(state=downstream_state, magnetic_field_normal=magnetic_field_normal, gamma=gamma)
     reference_speed_down = c_fast_down if wave_family == WaveFamily.Fast else c_slow_down
-    head_speed = upstream.velocity_normal + wave_speed_sign * reference_speed_up
-    tail_speed = downstream.velocity_normal + wave_speed_sign * reference_speed_down
-    return downstream, WaveInfo(kind=WaveKind.Rarefaction, head_speed=min(head_speed, tail_speed), tail_speed=max(head_speed, tail_speed))
+    head_speed = upstream_state.velocity_normal + wave_speed_sign * reference_speed_up
+    tail_speed = downstream_state.velocity_normal + wave_speed_sign * reference_speed_down
+    return downstream_state, WaveInfo(kind=WaveKind.Rarefaction, head_speed=min(head_speed, tail_speed), tail_speed=max(head_speed, tail_speed))
 
 
 def _compute_rotation_wave_info(
     *,
-    upstream: PrimitiveState,
+    upstream_state: PrimitiveState,
     magnetic_field_normal: float,
     sign: float,
 ) -> WaveInfo:
-    speed = upstream.velocity_normal - sign * magnetic_field_normal / numpy.sqrt(upstream.density)
+    speed = upstream_state.velocity_normal - sign * magnetic_field_normal / numpy.sqrt(upstream_state.density)
     return WaveInfo(kind=WaveKind.Shock, head_speed=speed, tail_speed=speed)
 
 
@@ -180,8 +180,8 @@ class RiemannSolution:
 
 def solve_riemann_problem(
     *,
-    left: PrimitiveState,
-    right: PrimitiveState,
+    left_state: PrimitiveState,
+    right_state: PrimitiveState,
     magnetic_field_normal: float,
     gamma: float,
 ) -> RiemannSolution:
@@ -196,36 +196,36 @@ def solve_riemann_problem(
 
     def build_regions(unknowns: NDArray[Any]) -> _RegionSet:
         pressure_2, psi_left, pressure_star, psi_right, pressure_7 = unknowns
-        region2, fast_left = _solve_wave(
-            upstream=left,
+        region2_state, fast_left = _solve_wave(
+            upstream_state=left_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
             pressure_downstream=pressure_2,
             wave_family=WaveFamily.Fast,
             wave_speed_sign=-1.0,
         )
-        region3 = rotational_discontinuity.apply_rotation(upstream=region2, angle=psi_left, sign=rotation_sign_left)
-        rotation_left = _compute_rotation_wave_info(upstream=region2, magnetic_field_normal=magnetic_field_normal, sign=rotation_sign_left)
-        region4, slow_left = _solve_wave(
-            upstream=region3,
+        region3_state = rotational_discontinuity.apply_rotation(upstream_state=region2_state, angle=psi_left, sign=rotation_sign_left)
+        rotation_left = _compute_rotation_wave_info(upstream_state=region2_state, magnetic_field_normal=magnetic_field_normal, sign=rotation_sign_left)
+        region4_state, slow_left = _solve_wave(
+            upstream_state=region3_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
             pressure_downstream=pressure_star,
             wave_family=WaveFamily.Slow,
             wave_speed_sign=-1.0,
         )
-        region7, fast_right = _solve_wave(
-            upstream=right,
+        region7_state, fast_right = _solve_wave(
+            upstream_state=right_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
             pressure_downstream=pressure_7,
             wave_family=WaveFamily.Fast,
             wave_speed_sign=1.0,
         )
-        region6 = rotational_discontinuity.apply_rotation(upstream=region7, angle=psi_right, sign=rotation_sign_right)
-        rotation_right = _compute_rotation_wave_info(upstream=region7, magnetic_field_normal=magnetic_field_normal, sign=rotation_sign_right)
-        region5, slow_right = _solve_wave(
-            upstream=region6,
+        region6_state = rotational_discontinuity.apply_rotation(upstream_state=region7_state, angle=psi_right, sign=rotation_sign_right)
+        rotation_right = _compute_rotation_wave_info(upstream_state=region7_state, magnetic_field_normal=magnetic_field_normal, sign=rotation_sign_right)
+        region5_state, slow_right = _solve_wave(
+            upstream_state=region6_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
             pressure_downstream=pressure_star,
@@ -233,12 +233,12 @@ def solve_riemann_problem(
             wave_speed_sign=1.0,
         )
         return _RegionSet(
-            region2=region2,
-            region3=region3,
-            region4=region4,
-            region5=region5,
-            region6=region6,
-            region7=region7,
+            region2=region2_state,
+            region3=region3_state,
+            region4=region4_state,
+            region5=region5_state,
+            region6=region6_state,
+            region7=region7_state,
             fast_left=fast_left,
             rotation_left=rotation_left,
             slow_left=slow_left,
@@ -259,7 +259,7 @@ def solve_riemann_problem(
             ],
         )
 
-    initial_guess = numpy.array([left.pressure * 1.2, 0.0, 0.5 * (left.pressure + right.pressure), 0.0, right.pressure * 1.2])
+    initial_guess = numpy.array([left_state.pressure * 1.2, 0.0, 0.5 * (left_state.pressure + right_state.pressure), 0.0, right_state.pressure * 1.2])
     solution = scipy_root(residuals, x0=initial_guess, method="hybr")
     if not solution.success:
         raise RuntimeError(f"riemann-problem root-find did not converge: {solution.message}.")
@@ -267,14 +267,14 @@ def solve_riemann_problem(
     region_set = build_regions(solution.x)
     contact_speed = region_set.region4.velocity_normal
     return RiemannSolution(
-        region1=left,
+        region1=left_state,
         region2=region_set.region2,
         region3=region_set.region3,
         region4=region_set.region4,
         region5=region_set.region5,
         region6=region_set.region6,
         region7=region_set.region7,
-        region8=right,
+        region8=right_state,
         fast_left=region_set.fast_left,
         rotation_left=region_set.rotation_left,
         slow_left=region_set.slow_left,
