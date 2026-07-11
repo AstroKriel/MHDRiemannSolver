@@ -146,17 +146,17 @@ def compute_flux(
     bx: float,
     gamma: float,
 ) -> ConservedVector:
-    total_pressure = state.p + 0.5 * (state.by**2 + state.bz**2)
+    total_pressure = state.p + 0.5 * (bx**2 + state.by**2 + state.bz**2)
     energy = compute_energy(state=state, bx=bx, gamma=gamma)
     return numpy.array(
         [
             state.rho * state.u,
-            state.rho * state.u**2 + total_pressure,
+            state.rho * state.u**2 + total_pressure - bx**2,
             state.rho * state.u * state.v - bx * state.by,
             state.rho * state.u * state.w - bx * state.bz,
             state.u * state.by - state.v * bx,
             state.u * state.bz - state.w * bx,
-            state.u * (energy + total_pressure) - bx * (state.v * state.by + state.w * state.bz),
+            state.u * (energy + total_pressure) - bx * (state.u * bx + state.v * state.by + state.w * state.bz),
         ],
     )
 
