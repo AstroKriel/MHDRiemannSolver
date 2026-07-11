@@ -56,61 +56,61 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
     def test_region_densities_match_ryu_jones_1995(
         self,
     ):
-        solution = exact_solution.solve_riemann_problem(
+        riemann_solution = exact_solution.solve_riemann_problem(
             left_state=_LEFT_STATE,
             right_state=_RIGHT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
         )
-        self.assertAlmostEqual(solution.left_fast_wave.state.density, 1.4903, places=3)
-        self.assertAlmostEqual(solution.left_rotation_discontinuity.state.density, 1.4903, places=3)
-        self.assertAlmostEqual(solution.left_slow_wave.state.density, 1.6343, places=3)
-        self.assertAlmostEqual(solution.contact.state.density, 1.4735, places=3)
-        self.assertAlmostEqual(solution.right_slow_wave.state.density, 1.3090, places=3)
-        self.assertAlmostEqual(solution.right_rotation_discontinuity.state.density, 1.3090, places=3)
+        self.assertAlmostEqual(riemann_solution.left_fast_wave.state.density, 1.4903, places=3)
+        self.assertAlmostEqual(riemann_solution.left_rotation_discontinuity.state.density, 1.4903, places=3)
+        self.assertAlmostEqual(riemann_solution.left_slow_wave.state.density, 1.6343, places=3)
+        self.assertAlmostEqual(riemann_solution.contact.state.density, 1.4735, places=3)
+        self.assertAlmostEqual(riemann_solution.right_slow_wave.state.density, 1.3090, places=3)
+        self.assertAlmostEqual(riemann_solution.right_rotation_discontinuity.state.density, 1.3090, places=3)
 
     def test_rotational_discontinuities_preserve_density(
         self,
     ):
-        solution = exact_solution.solve_riemann_problem(
+        riemann_solution = exact_solution.solve_riemann_problem(
             left_state=_LEFT_STATE,
             right_state=_RIGHT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
         )
         self.assertAlmostEqual(
-            solution.left_fast_wave.state.density,
-            solution.left_rotation_discontinuity.state.density,
+            riemann_solution.left_fast_wave.state.density,
+            riemann_solution.left_rotation_discontinuity.state.density,
             places=8,
         )
         self.assertAlmostEqual(
-            solution.right_slow_wave.state.density,
-            solution.right_rotation_discontinuity.state.density,
+            riemann_solution.right_slow_wave.state.density,
+            riemann_solution.right_rotation_discontinuity.state.density,
             places=8,
         )
 
     def test_contact_matches_pressure_and_velocity_not_density(
         self,
     ):
-        solution = exact_solution.solve_riemann_problem(
+        riemann_solution = exact_solution.solve_riemann_problem(
             left_state=_LEFT_STATE,
             right_state=_RIGHT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
             gamma=_GAMMA,
         )
         self.assertAlmostEqual(
-            solution.left_slow_wave.state.pressure,
-            solution.contact.state.pressure,
+            riemann_solution.left_slow_wave.state.pressure,
+            riemann_solution.contact.state.pressure,
             places=6,
         )
         self.assertAlmostEqual(
-            solution.left_slow_wave.state.velocity_normal,
-            solution.contact.state.velocity_normal,
+            riemann_solution.left_slow_wave.state.velocity_normal,
+            riemann_solution.contact.state.velocity_normal,
             places=6,
         )
         self.assertNotAlmostEqual(
-            solution.left_slow_wave.state.density,
-            solution.contact.state.density,
+            riemann_solution.left_slow_wave.state.density,
+            riemann_solution.contact.state.density,
             places=2,
         )
 
@@ -122,7 +122,7 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
         Ryu-Jones 2a regression test (`compute_error` in `test_nr_rj2a_cpu.py`),
         sourced independently of this solver.
         """
-        solution = exact_solution.solve_riemann_problem(
+        riemann_solution = exact_solution.solve_riemann_problem(
             left_state=_LEFT_STATE,
             right_state=_RIGHT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
@@ -136,33 +136,35 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
         expected_right_rotation_discontinuity = 0.53432 + 1.0 / math.sqrt(math.pi * 1.309)
         expected_right_fast_wave = 2.2638
         self.assertAlmostEqual(
-            solution.left_fast_wave.wave_propagation.head_speed,
+            riemann_solution.left_fast_wave.wave_propagation.head_speed,
             expected_left_fast_wave,
             places=3,
         )
         self.assertAlmostEqual(
-            solution.left_rotation_discontinuity.wave_propagation.head_speed,
+            riemann_solution.left_rotation_discontinuity.wave_propagation.head_speed,
             expected_left_rotation_discontinuity,
             places=3,
         )
         self.assertAlmostEqual(
-            solution.left_slow_wave.wave_propagation.head_speed,
+            riemann_solution.left_slow_wave.wave_propagation.head_speed,
             expected_left_slow_wave,
             places=3,
         )
-        self.assertAlmostEqual(solution.contact.wave_propagation.head_speed, expected_contact, places=3)
         self.assertAlmostEqual(
-            solution.right_slow_wave.wave_propagation.head_speed,
+            riemann_solution.contact.wave_propagation.head_speed, expected_contact, places=3
+        )
+        self.assertAlmostEqual(
+            riemann_solution.right_slow_wave.wave_propagation.head_speed,
             expected_right_slow_wave,
             places=3,
         )
         self.assertAlmostEqual(
-            solution.right_rotation_discontinuity.wave_propagation.head_speed,
+            riemann_solution.right_rotation_discontinuity.wave_propagation.head_speed,
             expected_right_rotation_discontinuity,
             places=3,
         )
         self.assertAlmostEqual(
-            solution.right_fast_wave.wave_propagation.head_speed,
+            riemann_solution.right_fast_wave.wave_propagation.head_speed,
             expected_right_fast_wave,
             places=3,
         )
@@ -173,7 +175,7 @@ class TestSampleProfile_ReturnsCorrectRegion(unittest.TestCase):
     def test_sample_profile_returns_expected_region_at_sample_points(
         self,
     ):
-        solution = exact_solution.solve_riemann_problem(
+        riemann_solution = exact_solution.solve_riemann_problem(
             left_state=_LEFT_STATE,
             right_state=_RIGHT_STATE,
             magnetic_field_normal=_MAGNETIC_FIELD_NORMAL,
@@ -183,15 +185,15 @@ class TestSampleProfile_ReturnsCorrectRegion(unittest.TestCase):
         discontinuity_position = 0.5
         sample_positions = numpy.array([0.0, 0.4, 0.58, 0.62, 0.69, 1.0])
         expected_regions = [
-            solution.left_state,
-            solution.left_fast_wave.state,
-            solution.left_slow_wave.state,
-            solution.contact.state,
-            solution.right_slow_wave.state,
-            solution.right_fast_wave.state,
+            riemann_solution.left_state,
+            riemann_solution.left_fast_wave.state,
+            riemann_solution.left_slow_wave.state,
+            riemann_solution.contact.state,
+            riemann_solution.right_slow_wave.state,
+            riemann_solution.right_fast_wave.state,
         ]
         profile = exact_solution.sample_profile(
-            solution=solution,
+            riemann_solution=riemann_solution,
             positions=sample_positions,
             time=time,
             discontinuity_position=discontinuity_position,

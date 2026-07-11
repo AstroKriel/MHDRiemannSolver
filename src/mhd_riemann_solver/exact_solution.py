@@ -373,15 +373,16 @@ def solve_riemann_problem(
         right_rotation_angle=0.0,
         right_fast_wave_downstream_pressure=right_state.pressure * 1.2,
     )
-    solution = scipy_root(
+    contact_residual_root = scipy_root(
         compute_contact_residual,
         x0=_as_params_vector(params=initial_guess),
         method="hybr",
     )
-    if not solution.success:
-        raise RuntimeError(f"riemann-problem root-find did not converge: {solution.message}.")
-
-    region_set = build_regions(_RiemannParams.from_params_vector(params_vector=solution.x))
+    if not contact_residual_root.success:
+        raise RuntimeError(f"riemann-problem root-find did not converge: {contact_residual_root.message}.")
+    region_set = build_regions(
+        _RiemannParams.from_params_vector(params_vector=contact_residual_root.x),
+    )
     contact_speed = region_set.left_slow_wave.state.velocity_normal
     return RiemannSolution(
         left_state=left_state,
@@ -409,31 +410,31 @@ def solve_riemann_problem(
 
 def sample_profile(
     *,
-    solution: RiemannSolution,
+    riemann_solution: RiemannSolution,
     positions: NDArray[Any],
     time: float,
     discontinuity_position: float = 0.0,
 ) -> list[PrimitiveState]:
     """
-    Sample `solution` at each position in `positions` at `time`, with the
-    initial discontinuity at `discontinuity_position`.
+    Sample `riemann_solution` at each position in `positions` at `time`, with
+    the initial discontinuity at `discontinuity_position`.
 
     Raises `NotImplementedError` if any sample falls strictly inside a
     rarefaction fan: fan-interior profiles are not yet interpolated.
     """
     waves = [
-        solution.left_fast_wave,
-        solution.left_rotation_discontinuity,
-        solution.left_slow_wave,
-        solution.contact,
-        solution.right_slow_wave,
-        solution.right_rotation_discontinuity,
-        solution.right_fast_wave,
+        riemann_solution.left_fast_wave,
+        riemann_solution.left_rotation_discontinuity,
+        riemann_solution.left_slow_wave,
+        riemann_solution.contact,
+        riemann_solution.right_slow_wave,
+        riemann_solution.right_rotation_discontinuity,
+        riemann_solution.right_fast_wave,
     ]
     profile: list[PrimitiveState] = []
     for position in positions:
         self_similar_speed = (position - discontinuity_position) / time
-        state = solution.left_state
+        state = riemann_solution.left_state
         for wave in waves:
             if self_similar_speed < wave.wave_propagation.head_speed:
                 break
