@@ -81,14 +81,14 @@ def _solve_wave(
         magnetic_field_normal=magnetic_field_normal,
         gamma=gamma,
     )
-    reference_speed_upstream = c_fast_upstream if wave_family == WaveFamily.Fast else c_slow_upstream
+    c_upstream = c_fast_upstream if wave_family == WaveFamily.Fast else c_slow_upstream
     if pressure_downstream > upstream_state.pressure:
         downstream_state, shock_speed = solve_shock.solve_shock(
             upstream_state=upstream_state,
             magnetic_field_normal=magnetic_field_normal,
             gamma=gamma,
             pressure_downstream=pressure_downstream,
-            initial_relative_speed_guess=-wave_speed_sign * reference_speed_upstream,
+            initial_relative_speed_guess=-wave_speed_sign * c_upstream,
         )
         return downstream_state, WavePropagation(
             wave_type=WaveType.Shock,
@@ -108,9 +108,9 @@ def _solve_wave(
         magnetic_field_normal=magnetic_field_normal,
         gamma=gamma,
     )
-    reference_speed_downstream = c_fast_downstream if wave_family == WaveFamily.Fast else c_slow_downstream
-    head_speed = upstream_state.velocity_normal + wave_speed_sign * reference_speed_upstream
-    tail_speed = downstream_state.velocity_normal + wave_speed_sign * reference_speed_downstream
+    c_downstream = c_fast_downstream if wave_family == WaveFamily.Fast else c_slow_downstream
+    head_speed = upstream_state.velocity_normal + wave_speed_sign * c_upstream
+    tail_speed = downstream_state.velocity_normal + wave_speed_sign * c_downstream
     return downstream_state, WavePropagation(
         wave_type=WaveType.Rarefaction,
         head_speed=min(head_speed, tail_speed),
