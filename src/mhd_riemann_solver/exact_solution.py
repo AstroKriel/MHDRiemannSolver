@@ -54,10 +54,10 @@ class Wave:
     """
     One wave of the fan, paired with the constant state immediately to its
     right (i.e. reached once the self-similar speed exceeds
-    `propagation.head_speed`).
+    `wave_propagation.head_speed`).
     """
 
-    propagation: WavePropagation
+    wave_propagation: WavePropagation
     state: PrimitiveState
 
 
@@ -265,13 +265,13 @@ def solve_riemann_problem(
             wave_speed_sign=1.0,
         )
         return _WaveRegions(
-            fast_left=Wave(propagation=fast_left_propagation, state=region2_state),
-            rotation_left=Wave(propagation=rotation_left_propagation, state=region3_state),
-            slow_left=Wave(propagation=slow_left_propagation, state=region4_state),
+            fast_left=Wave(wave_propagation=fast_left_propagation, state=region2_state),
+            rotation_left=Wave(wave_propagation=rotation_left_propagation, state=region3_state),
+            slow_left=Wave(wave_propagation=slow_left_propagation, state=region4_state),
             contact_state=region5_state,
-            slow_right=Wave(propagation=slow_right_propagation, state=region6_state),
-            rotation_right=Wave(propagation=rotation_right_propagation, state=region7_state),
-            fast_right=Wave(propagation=fast_right_propagation, state=right_state),
+            slow_right=Wave(wave_propagation=slow_right_propagation, state=region6_state),
+            rotation_right=Wave(wave_propagation=rotation_right_propagation, state=region7_state),
+            fast_right=Wave(wave_propagation=fast_right_propagation, state=right_state),
         )
 
     def residuals(
@@ -312,7 +312,7 @@ def solve_riemann_problem(
         rotation_left=region_set.rotation_left,
         slow_left=region_set.slow_left,
         contact=Wave(
-            propagation=WavePropagation(
+            wave_propagation=WavePropagation(
                 wave_type=WaveType.Shock,
                 head_speed=contact_speed,
                 tail_speed=contact_speed,
@@ -358,11 +358,11 @@ def sample_profile(
         self_similar_speed = (position - x0) / t
         state = solution.region1
         for wave in waves:
-            if self_similar_speed < wave.propagation.head_speed:
+            if self_similar_speed < wave.wave_propagation.head_speed:
                 break
             if (
-                wave.propagation.wave_type == WaveType.Rarefaction
-                and self_similar_speed < wave.propagation.tail_speed
+                wave.wave_propagation.wave_type == WaveType.Rarefaction
+                and self_similar_speed < wave.wave_propagation.tail_speed
             ):
                 raise NotImplementedError(
                     f"position `{position}` at t=`{t}` falls inside a rarefaction fan; "

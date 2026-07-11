@@ -117,13 +117,13 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
         expected_slow_right = 0.53432 + 0.48144 / 1.309
         expected_rotation_right = 0.53432 + 1.0 / math.sqrt(math.pi * 1.309)
         expected_fast_right = 2.2638
-        self.assertAlmostEqual(solution.fast_left.propagation.head_speed, expected_fast_left, places=3)
-        self.assertAlmostEqual(solution.rotation_left.propagation.head_speed, expected_rotation_left, places=3)
-        self.assertAlmostEqual(solution.slow_left.propagation.head_speed, expected_slow_left, places=3)
-        self.assertAlmostEqual(solution.contact.propagation.head_speed, expected_contact, places=3)
-        self.assertAlmostEqual(solution.slow_right.propagation.head_speed, expected_slow_right, places=3)
-        self.assertAlmostEqual(solution.rotation_right.propagation.head_speed, expected_rotation_right, places=3)
-        self.assertAlmostEqual(solution.fast_right.propagation.head_speed, expected_fast_right, places=3)
+        self.assertAlmostEqual(solution.fast_left.wave_propagation.head_speed, expected_fast_left, places=3)
+        self.assertAlmostEqual(solution.rotation_left.wave_propagation.head_speed, expected_rotation_left, places=3)
+        self.assertAlmostEqual(solution.slow_left.wave_propagation.head_speed, expected_slow_left, places=3)
+        self.assertAlmostEqual(solution.contact.wave_propagation.head_speed, expected_contact, places=3)
+        self.assertAlmostEqual(solution.slow_right.wave_propagation.head_speed, expected_slow_right, places=3)
+        self.assertAlmostEqual(solution.rotation_right.wave_propagation.head_speed, expected_rotation_right, places=3)
+        self.assertAlmostEqual(solution.fast_right.wave_propagation.head_speed, expected_fast_right, places=3)
 
 
 class TestSampleProfile_ReturnsCorrectRegion(unittest.TestCase):
