@@ -410,13 +410,13 @@ def solve_riemann_problem(
 def sample_profile(
     *,
     solution: RiemannSolution,
-    x: NDArray[Any],
-    t: float,
-    x0: float = 0.0,
+    positions: NDArray[Any],
+    time: float,
+    discontinuity_position: float = 0.0,
 ) -> list[PrimitiveState]:
     """
-    Sample `solution` at each position in `x` at time `t`, with the initial
-    discontinuity at `x0`.
+    Sample `solution` at each position in `positions` at `time`, with the
+    initial discontinuity at `discontinuity_position`.
 
     Raises `NotImplementedError` if any sample falls strictly inside a
     rarefaction fan: fan-interior profiles are not yet interpolated.
@@ -431,8 +431,8 @@ def sample_profile(
         solution.right_fast_wave,
     ]
     profile: list[PrimitiveState] = []
-    for position in x:
-        self_similar_speed = (position - x0) / t
+    for position in positions:
+        self_similar_speed = (position - discontinuity_position) / time
         state = solution.left_state
         for wave in waves:
             if self_similar_speed < wave.wave_propagation.head_speed:
@@ -440,7 +440,7 @@ def sample_profile(
             if (wave.wave_propagation.wave_type == WaveType.Rarefaction
                     and self_similar_speed < wave.wave_propagation.tail_speed):
                 raise NotImplementedError(
-                    f"position `{position}` at t=`{t}` falls inside a rarefaction fan; "
+                    f"position `{position}` at time=`{time}` falls inside a rarefaction fan; "
                     "fan-interior sampling is not yet supported.",
                 )
             state = wave.state
