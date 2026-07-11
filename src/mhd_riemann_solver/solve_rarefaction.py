@@ -20,7 +20,6 @@ from riemann_solver.mhd_state import PrimitiveState, WaveFamily
 ## === TYPE ALIASES
 ##
 
-## [density, velocity_normal, velocity_transverse_1, velocity_transverse_2, magnetic_field_transverse_1, magnetic_field_transverse_2, pressure]
 PrimitiveVector: TypeAlias = NDArray[Any]
 
 ##
@@ -50,17 +49,14 @@ def _state_from_primitive_vector(
     *,
     primitive_vector: PrimitiveVector,
 ) -> PrimitiveState:
-    density, velocity_normal, velocity_transverse_1, velocity_transverse_2, magnetic_field_transverse_1, magnetic_field_transverse_2, pressure = (
-        primitive_vector
-    )
     return PrimitiveState(
-        density=density,
-        velocity_normal=velocity_normal,
-        velocity_transverse_1=velocity_transverse_1,
-        velocity_transverse_2=velocity_transverse_2,
-        magnetic_field_transverse_1=magnetic_field_transverse_1,
-        magnetic_field_transverse_2=magnetic_field_transverse_2,
-        pressure=pressure,
+        density=primitive_vector[0],
+        velocity_normal=primitive_vector[1],
+        velocity_transverse_1=primitive_vector[2],
+        velocity_transverse_2=primitive_vector[3],
+        magnetic_field_transverse_1=primitive_vector[4],
+        magnetic_field_transverse_2=primitive_vector[5],
+        pressure=primitive_vector[6],
     )
 
 
@@ -185,15 +181,13 @@ def solve_rarefaction(
         pressure: float,
         state_vector: NDArray[Any],
     ) -> NDArray[Any]:
-        velocity_normal, velocity_transverse_1, velocity_transverse_2, magnetic_field_transverse_1, magnetic_field_transverse_2 = state_vector
-        density = (pressure / entropy_constant)**(1.0 / gamma)
         state = PrimitiveState(
-            density=density,
-            velocity_normal=velocity_normal,
-            velocity_transverse_1=velocity_transverse_1,
-            velocity_transverse_2=velocity_transverse_2,
-            magnetic_field_transverse_1=magnetic_field_transverse_1,
-            magnetic_field_transverse_2=magnetic_field_transverse_2,
+            density=(pressure / entropy_constant)**(1.0 / gamma),
+            velocity_normal=state_vector[0],
+            velocity_transverse_1=state_vector[1],
+            velocity_transverse_2=state_vector[2],
+            magnetic_field_transverse_1=state_vector[3],
+            magnetic_field_transverse_2=state_vector[4],
             pressure=pressure,
         )
         direction = _select_rarefaction_direction(
@@ -223,18 +217,14 @@ def solve_rarefaction(
     )
     if not rarefaction_ode_solution.success:
         raise RuntimeError(f"rarefaction ode integration failed: {rarefaction_ode_solution.message}.")
-    velocity_normal, velocity_transverse_1, velocity_transverse_2, magnetic_field_transverse_1, magnetic_field_transverse_2 = rarefaction_ode_solution.y[
-        :,
-        -1,
-    ]
-    density_downstream = (pressure_downstream / entropy_constant)**(1.0 / gamma)
+    final_state_vector = rarefaction_ode_solution.y[:, -1]
     return PrimitiveState(
-        density=density_downstream,
-        velocity_normal=velocity_normal,
-        velocity_transverse_1=velocity_transverse_1,
-        velocity_transverse_2=velocity_transverse_2,
-        magnetic_field_transverse_1=magnetic_field_transverse_1,
-        magnetic_field_transverse_2=magnetic_field_transverse_2,
+        density=(pressure_downstream / entropy_constant)**(1.0 / gamma),
+        velocity_normal=final_state_vector[0],
+        velocity_transverse_1=final_state_vector[1],
+        velocity_transverse_2=final_state_vector[2],
+        magnetic_field_transverse_1=final_state_vector[3],
+        magnetic_field_transverse_2=final_state_vector[4],
         pressure=pressure_downstream,
     )
 

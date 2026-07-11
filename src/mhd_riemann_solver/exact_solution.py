@@ -216,19 +216,12 @@ class _RiemannParams:
         *,
         params_vector: _ParamsVector,
     ) -> Self:
-        (
-            left_fast_wave_downstream_pressure,
-            left_rotation_angle,
-            pressure_star,
-            right_rotation_angle,
-            right_fast_wave_downstream_pressure,
-        ) = params_vector
         return cls(
-            left_fast_wave_downstream_pressure=left_fast_wave_downstream_pressure,
-            left_rotation_angle=left_rotation_angle,
-            pressure_star=pressure_star,
-            right_rotation_angle=right_rotation_angle,
-            right_fast_wave_downstream_pressure=right_fast_wave_downstream_pressure,
+            left_fast_wave_downstream_pressure=params_vector[0],
+            left_rotation_angle=params_vector[1],
+            pressure_star=params_vector[2],
+            right_rotation_angle=params_vector[3],
+            right_fast_wave_downstream_pressure=params_vector[4],
         )
 
 

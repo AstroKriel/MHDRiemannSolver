@@ -86,10 +86,9 @@ class _ShockParams:
         *,
         params_vector: _ShockParamsVector,
     ) -> Self:
-        mass_flux, density_downstream = params_vector
         return cls(
-            mass_flux=mass_flux,
-            density_downstream=density_downstream,
+            mass_flux=params_vector[0],
+            density_downstream=params_vector[1],
         )
 
 
@@ -101,7 +100,7 @@ def _as_params_vector(
     return numpy.array([
         shock_params.mass_flux,
         shock_params.density_downstream,
-    ], )
+    ])
 
 
 ##
