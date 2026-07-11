@@ -7,7 +7,7 @@
 ## stdlib
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, TypeAlias
+from typing import Any, Self, TypeAlias
 
 ## third-party
 import numpy
@@ -206,6 +206,27 @@ class _RiemannParams:
     right_rotation_angle: float
     right_fast_wave_downstream_pressure: float
 
+    @classmethod
+    def from_params_vector(
+        cls,
+        *,
+        params_vector: _ParamsVector,
+    ) -> Self:
+        (
+            left_fast_wave_downstream_pressure,
+            left_rotation_angle,
+            pressure_star,
+            right_rotation_angle,
+            right_fast_wave_downstream_pressure,
+        ) = params_vector
+        return cls(
+            left_fast_wave_downstream_pressure=left_fast_wave_downstream_pressure,
+            left_rotation_angle=left_rotation_angle,
+            pressure_star=pressure_star,
+            right_rotation_angle=right_rotation_angle,
+            right_fast_wave_downstream_pressure=right_fast_wave_downstream_pressure,
+        )
+
 
 def _as_params_vector(
     *,
@@ -220,26 +241,6 @@ def _as_params_vector(
             params.right_rotation_angle,
             params.right_fast_wave_downstream_pressure,
         ],
-    )
-
-
-def _params_from_vector(
-    *,
-    params_vector: _ParamsVector,
-) -> _RiemannParams:
-    (
-        left_fast_wave_downstream_pressure,
-        left_rotation_angle,
-        pressure_star,
-        right_rotation_angle,
-        right_fast_wave_downstream_pressure,
-    ) = params_vector
-    return _RiemannParams(
-        left_fast_wave_downstream_pressure=left_fast_wave_downstream_pressure,
-        left_rotation_angle=left_rotation_angle,
-        pressure_star=pressure_star,
-        right_rotation_angle=right_rotation_angle,
-        right_fast_wave_downstream_pressure=right_fast_wave_downstream_pressure,
     )
 
 
@@ -350,7 +351,7 @@ def solve_riemann_problem(
     def compute_contact_residual(
         params_vector: _ParamsVector,
     ) -> NDArray[Any]:
-        region_set = build_regions(_params_from_vector(params_vector=params_vector))
+        region_set = build_regions(_RiemannParams.from_params_vector(params_vector=params_vector))
         left_slow_wave_state = region_set.left_slow_wave.state
         contact_state = region_set.contact_state
         return numpy.array(
@@ -378,7 +379,7 @@ def solve_riemann_problem(
     if not solution.success:
         raise RuntimeError(f"riemann-problem root-find did not converge: {solution.message}.")
 
-    region_set = build_regions(_params_from_vector(params_vector=solution.x))
+    region_set = build_regions(_RiemannParams.from_params_vector(params_vector=solution.x))
     contact_speed = region_set.left_slow_wave.state.velocity_normal
     return RiemannSolution(
         left_state=left_state,
