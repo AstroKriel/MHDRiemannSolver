@@ -3,7 +3,7 @@
 ##
 
 [project]
-name = "mhd-riemann-solver"
+name = "aegir"
 version = "0.1.0"
 description = "MHDRiemannSolver: an exact 1D ideal-MHD Riemann solver"
 readme = "README.md"
@@ -28,6 +28,10 @@ build-backend = "hatchling.build"
 ## point hatchling to the importable source code
 [tool.hatch.build]
 sources = ["src"]
+
+## project name doesn't match the package name, so point the wheel at it explicitly
+[tool.hatch.build.targets.wheel]
+packages = ["src/mhd_riemann_solver"]
 
 ##
 ## === DEVELOPMENT DEPENDENCIES

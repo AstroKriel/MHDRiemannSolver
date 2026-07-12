@@ -1,21 +1,10 @@
 # MHDRiemannSolver (Ægir; Norse god of the sea, presiding over its waves)
 
-An exact solver for the 1D ideal-MHD Riemann problem: given two constant states either
-side of an initial discontinuity, it root-finds the full 7-wave fan (a fast wave, a
-rotational discontinuity, and a slow wave on each side of a contact discontinuity) and
-returns each wave's propagation speed and the resolved state between it and its
-neighbour. Unlike the approximate Riemann solvers (HLLD, Roe, ...) used inside a CFD
-code's per-timestep flux update, this one is deliberately slow and exact: it's built for
-generating reference solutions to validate MHD codes against, not for use inside a
-simulation's main loop.
+An exact solver for the 1D ideal-MHD Riemann problem: given two constant states either side of an initial discontinuity, it root-finds the full 7-wave fan (a fast wave, a rotational discontinuity, and a slow wave on each side of a contact discontinuity) and returns each wave's propagation speed and the resolved state between it and its neighbour. Unlike the approximate Riemann solvers (HLLD, Roe, ...) used inside a CFD code's per-timestep flux update, this one is deliberately slow and exact: it's built for generating reference solutions to validate MHD codes against, not for use inside a simulation's main loop.
 
-This assumes the standard, non-degenerate 7-wave topology: a genuinely nonzero normal
-field, and initial states whose transverse fields aren't coplanar (coplanar problems,
-e.g. Brio-Wu, degenerate the rotational discontinuities and aren't reliably solved by
-this formulation).
+This assumes the standard, non-degenerate 7-wave topology: a genuinely nonzero normal field, and initial states whose transverse fields aren't coplanar (coplanar problems, e.g. Brio-Wu, degenerate the rotational discontinuities and aren't reliably solved by this formulation).
 
-Here is the exact solution to the Ryu & Jones (1995) "2a" shock tube, one of the standard
-non-coplanar test problems for ideal-MHD Riemann solvers:
+Here is the exact solution to the Ryu & Jones (1995) "2a" shock tube, one of the standard non-coplanar test problems for ideal-MHD Riemann solvers:
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/AstroKriel/MHDRiemannSolver/refs/heads/main/gallery/ryu_jones_2a.png" width="70%" />
@@ -45,9 +34,7 @@ uv run demos/demo_rj2a.py
 
 ## Quick start
 
-`solve_riemann_problem` is the main entry point: give it a left/right `PrimitiveState`
-and a normal magnetic field, and it root-finds the resolved `RiemannSolution`.
-`sample_profile` then evaluates that solution at any `(position, time)`.
+`solve_riemann_problem` is the main entry point: give it a left/right `PrimitiveState` and a normal magnetic field, and it root-finds the resolved `RiemannSolution`. `sample_profile` then evaluates that solution at any `(position, time)`.
 
 ```python
 import numpy
@@ -108,7 +95,7 @@ MHDRiemannSolver/                        # project root
 ├── gallery/
 │   └── ryu_jones_2a.png
 ├── utests/
-│   └── mhd_riemann_solver/               # unit tests, one file per src module
+│   └── test_*.py                         # unit tests, one file per src module
 ├── pyproject.toml                        # project metadata and dependencies
 ├── uv.lock                               # lock file (used by uv to pin dependencies)
 ├── LICENSE                               # terms of use and distribution
@@ -117,7 +104,7 @@ MHDRiemannSolver/                        # project root
 
 ## References
 
-- Ryu, D. & Jones, T. W. (1995), ApJ 442, 228 — the "2a" shock tube used in the demo.
+- Ryu, D. & Jones, T. W. (1995), ApJ 442, 228: the "2a" shock tube used in the demo.
 
 ## License
 
