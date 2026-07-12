@@ -5,8 +5,8 @@
 ##
 
 ## local
-from riemann_solver import mhd_state
-from riemann_solver.mhd_state import ConservedVector, PrimitiveState
+from mhd_riemann_solver import mhd_state
+from mhd_riemann_solver.mhd_state import ConservedVector, PrimitiveState
 
 ##
 ## === JUMP-CONDITION RESIDUAL

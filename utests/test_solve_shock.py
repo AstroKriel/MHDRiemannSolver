@@ -8,8 +8,8 @@
 import unittest
 
 ## local
-from riemann_solver import mhd_state, rankine_hugoniot, solve_shock
-from riemann_solver.mhd_state import PrimitiveState
+from mhd_riemann_solver import mhd_state, rankine_hugoniot, solve_shock
+from mhd_riemann_solver.mhd_state import PrimitiveState
 
 ##
 ## === FIXTURES

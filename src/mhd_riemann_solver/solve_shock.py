@@ -14,8 +14,8 @@ from numpy.typing import NDArray
 from scipy.optimize import root as scipy_root
 
 ## local
-from riemann_solver import rankine_hugoniot
-from riemann_solver.mhd_state import PrimitiveState
+from mhd_riemann_solver import rankine_hugoniot
+from mhd_riemann_solver.mhd_state import PrimitiveState
 
 ##
 ## === DOWNSTREAM STATE FROM A MASS FLUX

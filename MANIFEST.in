@@ -1,0 +1,5 @@
+include README.md
+include LICENSE
+
+recursive-include src/mhd_riemann_solver *.py
+recursive-include gallery *

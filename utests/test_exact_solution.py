@@ -12,8 +12,8 @@ import unittest
 import numpy
 
 ## local
-from riemann_solver import exact_solution
-from riemann_solver.mhd_state import PrimitiveState
+from mhd_riemann_solver import exact_solution
+from mhd_riemann_solver.mhd_state import PrimitiveState
 
 ##
 ## === FIXTURES

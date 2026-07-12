@@ -15,8 +15,8 @@ from numpy.typing import NDArray
 from scipy.optimize import root as scipy_root
 
 ## local
-from riemann_solver import mhd_state, rotational_discontinuity, solve_rarefaction, solve_shock
-from riemann_solver.mhd_state import PrimitiveState, WaveFamily
+from mhd_riemann_solver import mhd_state, rotational_discontinuity, solve_rarefaction, solve_shock
+from mhd_riemann_solver.mhd_state import PrimitiveState, WaveFamily
 
 ##
 ## === WAVE PROPAGATION

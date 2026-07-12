@@ -1,0 +1,15 @@
+## virtual environment directory
+.venv/
+
+## build artifacts and metadata
+dist/
+**.egg-info/
+
+## extraneous files
+.DS_Store
+__pycache__/
+.pytest_cache/
+
+## plots saved by the demo script
+**.png
+!gallery/*.png

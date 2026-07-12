@@ -1,0 +1,70 @@
+##
+## === PACKAGE METADATA
+##
+
+[project]
+name = "mhd-riemann-solver"
+version = "0.1.0"
+description = "MHDRiemannSolver: an exact 1D ideal-MHD Riemann solver"
+readme = "README.md"
+authors = [
+  { name = "Neco Kriel", email = "necokriel@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.3.2",
+    "scipy>=1.15.2",
+]
+
+##
+## === BUILD SYSTEM
+##
+
+## hatchling packages the source into a distributable wheel
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+## point hatchling to the importable source code
+[tool.hatch.build]
+sources = ["src"]
+
+##
+## === DEVELOPMENT DEPENDENCIES
+##
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.0",
+    "pytest>=9.0.2",
+]
+demo = [
+    "matplotlib>=3.10.1",
+]
+
+##
+## === TEST RUNNER (pytest)
+##
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]  # makes src/ visible to pytest without installing the package
+testpaths = ["utests"]
+
+##
+## === TYPE CHECKER (basedpyright)
+##
+
+[tool.basedpyright]
+include = ["src", "demos", "utests"]
+extraPaths = ["src"]
+reportMissingTypeStubs = false  # suppress missing stub warnings for third-party packages (e.g. scipy)
+reportExplicitAny = "none"
+reportAny = "none"
+reportImplicitStringConcatenation = "none"
+reportImplicitOverride = "none"
+reportUnusedCallResult = "none"
+reportUnknownMemberType = "none"  # cascade from scipy's untyped stubs; not actionable
+reportUnknownVariableType = "none"  # cascade from scipy's untyped stubs; not actionable
+reportPrivateUsage = "none"  # tests legitimately access private members
+reportUnknownArgumentType = "none"  # cascade from scipy's untyped stubs; not actionable
+reportImportCycles = "none"  # __init__.py re-exports exact_solution, which imports its siblings via the package namespace
