@@ -4,7 +4,7 @@ An exact solver for the 1D ideal-MHD Riemann problem: given two constant states 
 
 This assumes the standard, non-degenerate 7-wave topology: a genuinely nonzero normal field, and initial states whose transverse fields aren't coplanar (coplanar problems, e.g. Brio-Wu, degenerate the rotational discontinuities and aren't reliably solved by this formulation).
 
-Here is the exact solution to the Ryu & Jones (1995) "2a" shock tube, one of the standard non-coplanar test problems for ideal-MHD Riemann solvers:
+Here is the exact solution to the Ryu & Jones (1995) "2a" shock tube, one of the standard non-coplanar test problems for ideal-MHD Riemann solvers, shown evolving over time. Each panel is one physical quantity; each ridge within a panel is a different time, from the initial discontinuity (bottom) to a fully developed 7-wave fan (top). Since the solution is self-similar, every ridge is a cheap re-sample of the same single solve, not a re-solved problem.
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/AstroKriel/MHDRiemannSolver/refs/heads/main/gallery/ryu_jones_2a.png" width="100%" />
