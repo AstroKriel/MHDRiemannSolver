@@ -75,7 +75,10 @@ def _solve_wave(
     wave_family: WaveFamily,
     wave_speed_sign: float,
 ) -> tuple[PrimitiveState, WavePropagation]:
-    """Solve one fast/slow wave, dispatching to a shock or a rarefaction by the sign of `pressure_downstream - upstream_state.pressure`."""
+    """
+    Solve one fast/slow wave, dispatching to a shock or a rarefaction by the
+    sign of `pressure_downstream - upstream_state.pressure`.
+    """
     c_fast_upstream, c_slow_upstream = mhd_state.compute_fast_slow_speeds(
         state=upstream_state,
         magnetic_field_normal=magnetic_field_normal,
@@ -126,6 +129,7 @@ def _compute_rotation_discontinuity_propagation(
     magnetic_field_normal: float,
     rotation_sign: float,
 ) -> WavePropagation:
+    """Return the (sharp) propagation speed of a rotational discontinuity leaving `upstream_state`."""
     speed = upstream_state.velocity_normal - rotation_sign * magnetic_field_normal / numpy.sqrt(
         upstream_state.density,
     )
@@ -265,6 +269,7 @@ def solve_riemann_problem(
     def build_region_set(
         riemann_params: _RiemannParams,
     ) -> _WaveRegions:
+        """Solve all 6 waves for one candidate `riemann_params`, left and right, out to the contact."""
         left_fast_wave_downstream_state, left_fast_wave_propagation = _solve_wave(
             upstream_state=left_state,
             magnetic_field_normal=magnetic_field_normal,
@@ -348,6 +353,7 @@ def solve_riemann_problem(
     def compute_contact_residual(
         params_vector: _ParamsVector,
     ) -> NDArray[Any]:
+        """Zero exactly when the left- and right-solved fans agree at the contact discontinuity."""
         region_set = build_region_set(_RiemannParams.from_params_vector(params_vector=params_vector))
         left_slow_wave_state = region_set.left_slow_wave.state
         contact_state = region_set.contact_state

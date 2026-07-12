@@ -24,9 +24,8 @@ def compute_jump_residual(
     """
     Residual of the Rankine-Hugoniot jump conditions across a discontinuity moving
     at `shock_speed`: `flux - shock_speed * conserved_vector` must be continuous
-    across any valid discontinuity (shock, contact, or rotational). Zero means
-    `upstream_state` and `downstream_state` are consistent jump states for that
-    `shock_speed`.
+    across any valid discontinuity (shock, contact, or rotational); zero means
+    `upstream_state` and `downstream_state` are consistent jump states for that `shock_speed`.
     """
     upstream_conserved_vector = mhd_state.as_conserved(
         state=upstream_state,

@@ -40,9 +40,12 @@ def apply_rotation(
     Apply a rotational discontinuity to `upstream_state`, rotating its transverse field
     by `angle` radians; density, pressure, and normal velocity are preserved.
 
-    `rotation_sign` selects which characteristic branch this propagates along;
-    whether a given `rotation_sign` is the "left" or "right" discontinuity in a
-    wave fan depends on the sign of `magnetic_field_normal`, not a fixed convention.
+    Parameters
+    ---
+    - `rotation_sign`:
+        Selects which characteristic branch this propagates along; whether a
+        given `rotation_sign` is the "left" or "right" discontinuity in a wave
+        fan depends on the sign of `magnetic_field_normal`, not a fixed convention.
     """
     new_magnetic_field_transverse_1, new_magnetic_field_transverse_2 = rotate_transverse_field(
         magnetic_field_transverse_1=upstream_state.magnetic_field_transverse_1,
