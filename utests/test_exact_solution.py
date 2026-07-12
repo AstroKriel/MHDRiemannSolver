@@ -172,9 +172,9 @@ class TestSolveRiemannProblem_RyuJones2a(unittest.TestCase):
         )
 
 
-class TestSampleProfile_ReturnsCorrectRegion(unittest.TestCase):
+class TestSampleSnapshot_ReturnsCorrectRegion(unittest.TestCase):
 
-    def test_sample_profile_returns_expected_region_at_sample_points(
+    def test_sample_snapshot_returns_expected_region_at_sample_points(
         self,
     ):
         riemann_solution = exact_solution.solve_riemann_problem(
@@ -194,13 +194,13 @@ class TestSampleProfile_ReturnsCorrectRegion(unittest.TestCase):
             riemann_solution.right_slow_wave.state,
             riemann_solution.right_fast_wave.state,
         ]
-        profile = exact_solution.sample_profile(
+        snapshot = exact_solution.sample_snapshot(
             riemann_solution=riemann_solution,
             positions=sample_positions,
             time=time,
             discontinuity_position=discontinuity_position,
         )
-        for expected_region, got_state in zip(expected_regions, profile):
+        for expected_region, got_state in zip(expected_regions, snapshot):
             self.assertAlmostEqual(got_state.density, expected_region.density, places=8)
 
 

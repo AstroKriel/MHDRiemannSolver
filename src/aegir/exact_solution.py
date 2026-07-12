@@ -266,7 +266,7 @@ def solve_riemann_problem(
     left_rotation_sign = 1.0 if magnetic_field_normal >= 0.0 else -1.0
     right_rotation_sign = -left_rotation_sign
 
-    def build_region_set(
+    def build_wave_regions(
         riemann_params: _RiemannParams,
     ) -> _WaveRegions:
         """Solve all 6 waves for one candidate `riemann_params`, left and right, out to the contact."""
@@ -354,9 +354,9 @@ def solve_riemann_problem(
         params_vector: _ParamsVector,
     ) -> NDArray[Any]:
         """Zero exactly when the left- and right-solved fans agree at the contact discontinuity."""
-        region_set = build_region_set(_RiemannParams.from_params_vector(params_vector=params_vector))
-        left_slow_wave_state = region_set.left_slow_wave.state
-        contact_state = region_set.contact_state
+        wave_regions = build_wave_regions(_RiemannParams.from_params_vector(params_vector=params_vector))
+        left_slow_wave_state = wave_regions.left_slow_wave.state
+        contact_state = wave_regions.contact_state
         velocity_normal_residual = left_slow_wave_state.velocity_normal - contact_state.velocity_normal
         velocity_transverse_1_residual = (
             left_slow_wave_state.velocity_transverse_1 - contact_state.velocity_transverse_1
@@ -394,35 +394,35 @@ def solve_riemann_problem(
     )
     if not contact_residual_root.success:
         raise RuntimeError(f"riemann-problem root-find did not converge: {contact_residual_root.message}.")
-    region_set = build_region_set(
+    wave_regions = build_wave_regions(
         _RiemannParams.from_params_vector(params_vector=contact_residual_root.x),
     )
-    contact_speed = region_set.left_slow_wave.state.velocity_normal
+    contact_speed = wave_regions.left_slow_wave.state.velocity_normal
     return RiemannSolution(
         left_state=left_state,
-        left_fast_wave=region_set.left_fast_wave,
-        left_rotation_discontinuity=region_set.left_rotation_discontinuity,
-        left_slow_wave=region_set.left_slow_wave,
+        left_fast_wave=wave_regions.left_fast_wave,
+        left_rotation_discontinuity=wave_regions.left_rotation_discontinuity,
+        left_slow_wave=wave_regions.left_slow_wave,
         contact=Wave(
             wave_propagation=WavePropagation(
                 wave_type=WaveType.Shock,
                 head_speed=contact_speed,
                 tail_speed=contact_speed,
             ),
-            state=region_set.contact_state,
+            state=wave_regions.contact_state,
         ),
-        right_slow_wave=region_set.right_slow_wave,
-        right_rotation_discontinuity=region_set.right_rotation_discontinuity,
-        right_fast_wave=region_set.right_fast_wave,
+        right_slow_wave=wave_regions.right_slow_wave,
+        right_rotation_discontinuity=wave_regions.right_rotation_discontinuity,
+        right_fast_wave=wave_regions.right_fast_wave,
     )
 
 
 ##
-## === PROFILE EVALUATION
+## === SNAPSHOT EVALUATION
 ##
 
 
-def sample_profile(
+def sample_snapshot(
     *,
     riemann_solution: RiemannSolution,
     positions: NDArray[Any],
@@ -434,7 +434,7 @@ def sample_profile(
     the initial discontinuity at `discontinuity_position`.
 
     Raises `NotImplementedError` if any sample falls strictly inside a
-    rarefaction fan: fan-interior profiles are not yet interpolated.
+    rarefaction fan: fan-interior samples are not yet interpolated.
     """
     waves = [
         riemann_solution.left_fast_wave,
@@ -445,7 +445,7 @@ def sample_profile(
         riemann_solution.right_rotation_discontinuity,
         riemann_solution.right_fast_wave,
     ]
-    profile: list[PrimitiveState] = []
+    snapshot: list[PrimitiveState] = []
     for position in positions:
         self_similar_speed = (position - discontinuity_position) / time
         state = riemann_solution.left_state
@@ -459,8 +459,8 @@ def sample_profile(
                     "fan-interior sampling is not yet supported.",
                 )
             state = wave.state
-        profile.append(state)
-    return profile
+        snapshot.append(state)
+    return snapshot
 
 
 ## } MODULE

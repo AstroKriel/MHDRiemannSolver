@@ -34,11 +34,12 @@ uv run demos/demo_ryu_jones_2a.py
 
 ## Quick start
 
-`solve_riemann_problem` is the main entry point: give it a left/right `PrimitiveState` and a normal magnetic field, and it root-finds the resolved `RiemannSolution`. `sample_profile` then evaluates that solution at any `(position, time)`.
+`exact_solution.solve_riemann_problem` is the main entry point: give it a left/right `PrimitiveState` and a normal magnetic field, and it root-finds the resolved `RiemannSolution`. `exact_solution.sample_snapshot` then evaluates that solution at any `(position, time)`.
 
 ```python
 import numpy
-from aegir import PrimitiveState, sample_profile, solve_riemann_problem
+from aegir import exact_solution
+from aegir.mhd_state import PrimitiveState
 
 left_state = PrimitiveState(
     density=1.08,
@@ -61,14 +62,14 @@ right_state = PrimitiveState(
 magnetic_field_normal = 0.5641895835477562
 gamma = 5.0 / 3.0
 
-solution = solve_riemann_problem(
+solution = exact_solution.solve_riemann_problem(
     left_state=left_state,
     right_state=right_state,
     magnetic_field_normal=magnetic_field_normal,
     gamma=gamma,
 )
 positions = numpy.linspace(0.0, 1.0, 2001)
-profile = sample_profile(
+snapshot = exact_solution.sample_snapshot(
     riemann_solution=solution,
     positions=positions,
     time=0.2,
@@ -82,7 +83,7 @@ profile = sample_profile(
 MHDRiemannSolver/                        # project root
 ├── src/
 │   └── aegir/                            # package root (named after Ægir, Norse sea god)
-│       ├── __init__.py                   # public API
+│       ├── __init__.py
 │       ├── py.typed                      # marker for type checkers (PEP 561)
 │       ├── mhd_state.py                  # primitive state, wave speeds, conserved/flux conversions
 │       ├── rankine_hugoniot.py           # jump-condition residual, used to validate wave relations
