@@ -87,7 +87,7 @@ DISCONTINUITY_POSITION = 0.35
 NUM_POSITIONS = 1001
 TIME_MIN = 1e-9
 TIME_MAX = 0.3
-NUM_TIMES = 8
+NUM_TIMES = 10
 
 ##
 ## === PLOT STYLE
@@ -95,10 +95,11 @@ NUM_TIMES = 8
 ## Edit this section to change how the ridgeline wave is drawn.
 ##
 
-## vertical spacing between ridge baselines
-LANE_HEIGHT = 0.6
-## each ridge's own curve height, as a fraction of `LANE_HEIGHT`
-AMPLITUDE_SCALE = 0.6
+
+BOTTOM_MARGIN = 0.05
+TOP_MARGIN = 0.15
+AMPLITUDE_SCALE = 0.5
+
 LINEWIDTH = 2.0
 COLORMAP_NAME = "viridis"
 
@@ -113,17 +114,11 @@ def extract_profile_evolutions(
 ) -> list[ProfileEvolution]:
     """Return one `ProfileEvolution` per quantity, each holding its values at every snapshot in `snapshots_by_time`."""
     return [
+        ## row 1: density, then velocity components
         ProfileEvolution(
             label="gas density",
             values_by_time=[
                 numpy.array([snapshot_state.density for snapshot_state in snapshot])
-                for snapshot in snapshots_by_time
-            ],
-        ),
-        ProfileEvolution(
-            label="gas pressure",
-            values_by_time=[
-                numpy.array([snapshot_state.pressure for snapshot_state in snapshot])
                 for snapshot in snapshots_by_time
             ],
         ),
@@ -148,17 +143,11 @@ def extract_profile_evolutions(
                 for snapshot in snapshots_by_time
             ],
         ),
+        ## row 2: energy, then magnetic components
         ProfileEvolution(
-            label=r"magnetic $\perp_1$ component",
+            label="gas pressure",
             values_by_time=[
-                numpy.array([snapshot_state.magnetic_field_transverse_1 for snapshot_state in snapshot])
-                for snapshot in snapshots_by_time
-            ],
-        ),
-        ProfileEvolution(
-            label=r"magnetic $\perp_2$ component",
-            values_by_time=[
-                numpy.array([snapshot_state.magnetic_field_transverse_2 for snapshot_state in snapshot])
+                numpy.array([snapshot_state.pressure for snapshot_state in snapshot])
                 for snapshot in snapshots_by_time
             ],
         ),
@@ -174,6 +163,20 @@ def extract_profile_evolutions(
                         ) for snapshot_state in snapshot
                     ],
                 ) for snapshot in snapshots_by_time
+            ],
+        ),
+        ProfileEvolution(
+            label=r"magnetic $\perp_1$ component",
+            values_by_time=[
+                numpy.array([snapshot_state.magnetic_field_transverse_1 for snapshot_state in snapshot])
+                for snapshot in snapshots_by_time
+            ],
+        ),
+        ProfileEvolution(
+            label=r"magnetic $\perp_2$ component",
+            values_by_time=[
+                numpy.array([snapshot_state.magnetic_field_transverse_2 for snapshot_state in snapshot])
+                for snapshot in snapshots_by_time
             ],
         ),
     ]
@@ -203,30 +206,25 @@ def plot_wave_grid(
     positions: NDArray[Any],
     times: NDArray[Any],
 ) -> Figure:
-    """Return a 4x2 grid figure, one ridgeline wave panel per quantity in `profile_evolutions`."""
-    mpl_plot.rcParams.update(
-        {
-            "font.size": 16,
-            "axes.labelsize": 16,
-            "xtick.labelsize": 14,
-            "ytick.labelsize": 14,
-        },
-    )
+    """Return a 2x4 grid figure, one ridgeline wave panel per quantity in `profile_evolutions`."""
     num_times = len(times)
-    amplitude = AMPLITUDE_SCALE * LANE_HEIGHT
+    ## spacing between ridge baselines, sized so the whole stack fits in [BOTTOM_MARGIN, 1 - TOP_MARGIN]
+    ridge_spacing = (1.0 - BOTTOM_MARGIN - TOP_MARGIN) / (num_times - 1)
+    ridge_amplitude = AMPLITUDE_SCALE * ridge_spacing
     cmap = colormaps[COLORMAP_NAME]
-    fig, axs = mpl_plot.subplots(4, 2, figsize=(9, 16))
+    fig, axs = mpl_plot.subplots(2, 4, figsize=(15, 10), sharex=True)
     for ax, profile_evolution in zip(axs.flatten(), profile_evolutions):
-        all_values = numpy.concatenate(profile_evolution.values_by_time)
-        value_min, value_max = all_values.min(), all_values.max()
+        ## anchor the scale on the first (t=0) and last (t=end) snapshots, not the global extrema
+        value_min = profile_evolution.values_by_time[0].min()
+        value_max = profile_evolution.values_by_time[-1].max()
         value_span = value_max - value_min
         for ridge_index, (time, ridge_values) in enumerate(zip(
                 times,
                 profile_evolution.values_by_time,
         ), ):
-            baseline = ridge_index * LANE_HEIGHT
+            baseline = BOTTOM_MARGIN + ridge_index * ridge_spacing
             norm_values = (ridge_values - value_min) / value_span
-            ridge_curve = baseline + amplitude * norm_values
+            ridge_curve = baseline + ridge_amplitude * norm_values
             ax.plot(
                 positions - DISCONTINUITY_POSITION,
                 ridge_curve,
@@ -235,18 +233,18 @@ def plot_wave_grid(
                 zorder=ridge_index,
             )
         ax.set_yticks([])
-        stack_top = (num_times - 1) * LANE_HEIGHT + amplitude
-        ax.set_ylim(-0.1 * LANE_HEIGHT, stack_top + 0.6)  # fixed headroom, not scaled by LANE_HEIGHT
+        ax.set_ylim(0, 1)
         ax.text(
             0.5,
-            0.97,
+            0.975,
             profile_evolution.label,
             transform=ax.transAxes,
             horizontalalignment="center",
             verticalalignment="top",
+            fontsize=16,
         )
-    axs[-1, 0].set_xlabel(r"$x - x_{\mathrm{discontinuity}}$")
-    axs[-1, 1].set_xlabel(r"$x - x_{\mathrm{discontinuity}}$")
+    for col in range(axs.shape[1]):
+        axs[-1, col].set_xlabel(r"$x_0 - x_{\mathrm{discontinuity}}$", fontsize=20)
     fig.tight_layout(h_pad=2.0)
     return fig
 
@@ -266,7 +264,6 @@ def main():
         magnetic_field_normal=MAGNETIC_FIELD_NORMAL,
         gamma=GAMMA,
     )
-
     print("Sampling every quantity at each time...")
     positions = numpy.linspace(0.0, 1.0, NUM_POSITIONS)
     times = numpy.linspace(TIME_MIN, TIME_MAX, NUM_TIMES)
@@ -275,14 +272,12 @@ def main():
         positions=positions,
         times=times,
     )
-
     print("Plotting the waves...")
     fig = plot_wave_grid(
         profile_evolutions=profile_evolutions,
         positions=positions,
         times=times,
     )
-
     print("Saving figure...")
     gallery_dir = Path(__file__).parents[1] / "gallery"
     gallery_dir.mkdir(exist_ok=True)
