@@ -77,30 +77,38 @@ snapshot = exact_solution.sample_snapshot(
 )
 ```
 
-## File structure
+## Run test suites
+
+Run the suite of unit tests:
 
 ```bash
-MHDRiemannSolver/                        # project root
+uv run pytest
+```
+
+## File structure
+
+```text
+MHDRiemannSolver/  # project root
 ├── src/
-│   └── aegir/                            # package root (named after Aegir, Norse sea god)
+│   └── aegir/  # package root (named after Aegir, Norse sea god)
 │       ├── __init__.py
-│       ├── py.typed                      # marker for type checkers (PEP 561)
-│       ├── mhd_state.py                  # primitive state, wave speeds, conserved/flux conversions
-│       ├── rankine_hugoniot.py           # jump-condition residual, used to validate wave relations
-│       ├── rotational_discontinuity.py   # Alfven discontinuity relation
-│       ├── solve_shock.py                # MHD shock jump-condition solver
-│       ├── solve_rarefaction.py          # MHD rarefaction ODE solver
-│       └── exact_solution.py             # coupled 7-wave root-find; the main entry point
+│       ├── py.typed  # marker for type checkers (PEP 561)
+│       ├── mhd_state.py  # primitive state, wave speeds, conserved/flux conversions
+│       ├── rankine_hugoniot.py  # jump-condition residual, used to validate wave relations
+│       ├── rotational_discontinuity.py  # Alfven discontinuity relation
+│       ├── solve_shock.py  # MHD shock jump-condition solver
+│       ├── solve_rarefaction.py  # MHD rarefaction ODE solver
+│       └── exact_solution.py  # coupled 7-wave root-find; the main entry point
 ├── demos/
-│   └── demo_ryu_jones_2a.py              # solves and plots the Ryu & Jones (1995) 2a shock tube
+│   └── demo_ryu_jones_2a.py  # solves and plots the Ryu & Jones (1995) 2a shock tube
 ├── gallery/
 │   └── ryu_jones_2a.png
 ├── utests/
-│   └── test_*.py                         # unit tests, one file per src module
-├── pyproject.toml                        # project metadata and dependencies
-├── uv.lock                               # lock file (used by uv to pin dependencies)
-├── LICENSE                               # terms of use and distribution
-└── README.md                             # this file
+│   └── test_*.py  # unit tests, one file per src module
+├── pyproject.toml  # project metadata and dependencies
+├── uv.lock  # lock file (used by uv to pin dependencies)
+├── LICENSE  # terms of use and distribution
+└── README.md  # this file
 ```
 
 ## References
