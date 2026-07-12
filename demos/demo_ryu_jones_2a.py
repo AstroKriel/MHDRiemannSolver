@@ -213,7 +213,6 @@ def plot_wave_grid(
             "axes.labelsize": 24,
             "xtick.labelsize": 16,
             "ytick.labelsize": 16,
-            "text.usetex": True,
         },
     )
     num_times = len(times)
