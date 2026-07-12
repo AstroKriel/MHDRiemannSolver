@@ -116,14 +116,14 @@ def extract_profile_evolutions(
     return [
         ## row 1: density, then velocity components
         ProfileEvolution(
-            label="gas density",
+            label=r"gas density",
             values_by_time=[
                 numpy.array([snapshot_state.density for snapshot_state in snapshot])
                 for snapshot in snapshots_by_time
             ],
         ),
         ProfileEvolution(
-            label="velocity normal-component",
+            label=r"velocity normal-component",
             values_by_time=[
                 numpy.array([snapshot_state.velocity_normal for snapshot_state in snapshot])
                 for snapshot in snapshots_by_time
@@ -145,14 +145,14 @@ def extract_profile_evolutions(
         ),
         ## row 2: energy, then magnetic components
         ProfileEvolution(
-            label="gas pressure",
+            label=r"gas pressure",
             values_by_time=[
                 numpy.array([snapshot_state.pressure for snapshot_state in snapshot])
                 for snapshot in snapshots_by_time
             ],
         ),
         ProfileEvolution(
-            label="total energy",
+            label=r"total energy",
             values_by_time=[
                 numpy.array(
                     [
@@ -207,6 +207,15 @@ def plot_wave_grid(
     times: NDArray[Any],
 ) -> Figure:
     """Return a 2x4 grid figure, one ridgeline wave panel per quantity in `profile_evolutions`."""
+    mpl_plot.rcParams.update(
+        {
+            "font.size": 16,
+            "axes.labelsize": 24,
+            "xtick.labelsize": 16,
+            "ytick.labelsize": 16,
+            "text.usetex": True,
+        },
+    )
     num_times = len(times)
     ## spacing between ridge baselines, sized so the whole stack fits in [BOTTOM_MARGIN, 1 - TOP_MARGIN]
     ridge_spacing = (1.0 - BOTTOM_MARGIN - TOP_MARGIN) / (num_times - 1)
@@ -241,11 +250,14 @@ def plot_wave_grid(
             transform=ax.transAxes,
             horizontalalignment="center",
             verticalalignment="top",
-            fontsize=16,
+            fontsize=18,
         )
     for col in range(axs.shape[1]):
-        axs[-1, col].set_xlabel(r"$x_0 - x_{\mathrm{discontinuity}}$", fontsize=20)
-    fig.tight_layout(h_pad=2.0)
+        axs[-1, col].set_xlabel(r"$x_0 - x_{\mathrm{discontinuity}}$")
+    fig.tight_layout(
+        h_pad=1.0,
+        w_pad=1.0,
+    )
     return fig
 
 
