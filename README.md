@@ -7,7 +7,7 @@ This assumes the standard, non-degenerate 7-wave topology: a genuinely nonzero n
 Here is the exact solution to the Ryu & Jones (1995) "2a" shock tube, one of the standard non-coplanar test problems for ideal-MHD Riemann solvers:
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/AstroKriel/MHDRiemannSolver/refs/heads/main/gallery/ryu_jones_2a.png" width="70%" />
+  <img src="https://raw.githubusercontent.com/AstroKriel/MHDRiemannSolver/refs/heads/main/gallery/ryu_jones_2a.png" width="100%" />
 </div>
 
 ## Getting setup
