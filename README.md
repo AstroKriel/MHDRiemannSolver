@@ -1,4 +1,4 @@
-# MHDRiemannSolver (Ægir; Norse god of the sea, presiding over its waves)
+# MHDRiemannSolver (Aegir; Norse god of the sea, presiding over its waves)
 
 An exact solver for the 1D ideal-MHD Riemann problem: given two constant states either side of an initial discontinuity, it root-finds the full 7-wave fan (a fast wave, a rotational discontinuity, and a slow wave on each side of a contact discontinuity) and returns each wave's propagation speed and the resolved state between it and its neighbour. Unlike the approximate Riemann solvers (HLLD, Roe, ...) used inside a CFD code's per-timestep flux update, this one is deliberately slow and exact: it's built for generating reference solutions to validate MHD codes against, not for use inside a simulation's main loop.
 
@@ -82,7 +82,7 @@ snapshot = exact_solution.sample_snapshot(
 ```bash
 MHDRiemannSolver/                        # project root
 ├── src/
-│   └── aegir/                            # package root (named after Ægir, Norse sea god)
+│   └── aegir/                            # package root (named after Aegir, Norse sea god)
 │       ├── __init__.py
 │       ├── py.typed                      # marker for type checkers (PEP 561)
 │       ├── mhd_state.py                  # primitive state, wave speeds, conserved/flux conversions
