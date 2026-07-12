@@ -17,7 +17,6 @@ from numpy.typing import NDArray
 ## === TYPE ALIASES
 ##
 
-## conserved vector: [density, momentum_0, momentum_1, momentum_2, magnetic_field_transverse_1, magnetic_field_transverse_2, total_energy]
 ConservedVector: TypeAlias = NDArray[Any]
 
 ##

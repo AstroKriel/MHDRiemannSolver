@@ -60,7 +60,7 @@ def _state_from_primitive_vector(
     )
 
 
-def _compute_numerical_jacobian(
+def _compute_jacobian(
     *,
     func: Callable[[NDArray[Any]], NDArray[Any]],
     x: NDArray[Any],
@@ -109,11 +109,11 @@ def _compute_primitive_eigensystem(
             gamma=gamma,
         )
 
-    flux_jacobian = _compute_numerical_jacobian(
+    flux_jacobian = _compute_jacobian(
         func=flux_of_vector,
         x=primitive_vector,
     )
-    conserved_jacobian = _compute_numerical_jacobian(
+    conserved_jacobian = _compute_jacobian(
         func=conserved_of_vector,
         x=primitive_vector,
     )
