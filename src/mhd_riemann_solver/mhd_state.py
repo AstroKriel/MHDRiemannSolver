@@ -17,7 +17,7 @@ from numpy.typing import NDArray
 ## === TYPE ALIASES
 ##
 
-## conserved vector: [density, momentum_0, momentum_1, momentum_2, magnetic_field_transverse_1, magnetic_field_transverse_2, energy]
+## conserved vector: [density, momentum_0, momentum_1, momentum_2, magnetic_field_transverse_1, magnetic_field_transverse_2, total_energy]
 ConservedVector: TypeAlias = NDArray[Any]
 
 ##
@@ -105,16 +105,16 @@ def compute_fast_slow_speeds(
     ) / state.density
     normal_alfven_speed_sq = magnetic_field_normal**2 / state.density
     discriminant = (sound_speed_sq + total_alfven_speed_sq)**2 - 4.0 * sound_speed_sq * normal_alfven_speed_sq
-    root = numpy.sqrt(
+    discriminant_sqrt = numpy.sqrt(
         max(
             discriminant,
             0.0,
         ),
     )
-    c_fast = numpy.sqrt(0.5 * (sound_speed_sq + total_alfven_speed_sq + root))
+    c_fast = numpy.sqrt(0.5 * (sound_speed_sq + total_alfven_speed_sq + discriminant_sqrt))
     c_slow = numpy.sqrt(
         max(
-            0.5 * (sound_speed_sq + total_alfven_speed_sq - root),
+            0.5 * (sound_speed_sq + total_alfven_speed_sq - discriminant_sqrt),
             0.0,
         ),
     )
@@ -126,7 +126,7 @@ def compute_fast_slow_speeds(
 ##
 
 
-def compute_energy(
+def compute_total_energy(
     *,
     state: PrimitiveState,
     magnetic_field_normal: float,
@@ -153,7 +153,7 @@ def as_conserved(
     momentum_0 = state.density * state.velocity_normal
     momentum_1 = state.density * state.velocity_transverse_1
     momentum_2 = state.density * state.velocity_transverse_2
-    energy = compute_energy(
+    total_energy = compute_total_energy(
         state=state,
         magnetic_field_normal=magnetic_field_normal,
         gamma=gamma,
@@ -166,7 +166,7 @@ def as_conserved(
             momentum_2,
             state.magnetic_field_transverse_1,
             state.magnetic_field_transverse_2,
-            energy,
+            total_energy,
         ],
     )
 
@@ -184,7 +184,7 @@ def as_primitive(
     momentum_2 = conserved_vector[3]
     magnetic_field_transverse_1 = conserved_vector[4]
     magnetic_field_transverse_2 = conserved_vector[5]
-    energy = conserved_vector[6]
+    total_energy = conserved_vector[6]
     velocity_normal = momentum_0 / density
     velocity_transverse_1 = momentum_1 / density
     velocity_transverse_2 = momentum_2 / density
@@ -194,7 +194,7 @@ def as_primitive(
     magnetic_energy = 0.5 * (
         magnetic_field_normal**2 + magnetic_field_transverse_1**2 + magnetic_field_transverse_2**2
     )
-    pressure = (energy - kinetic_energy - magnetic_energy) * (gamma - 1.0)
+    pressure = (total_energy - kinetic_energy - magnetic_energy) * (gamma - 1.0)
     return PrimitiveState(
         density=density,
         velocity_normal=velocity_normal,
@@ -216,7 +216,7 @@ def compute_flux(
     total_pressure = state.pressure + 0.5 * (
         magnetic_field_normal**2 + state.magnetic_field_transverse_1**2 + state.magnetic_field_transverse_2**2
     )
-    energy = compute_energy(
+    total_energy = compute_total_energy(
         state=state,
         magnetic_field_normal=magnetic_field_normal,
         gamma=gamma,
@@ -239,7 +239,7 @@ def compute_flux(
         state.velocity_normal * state.magnetic_field_transverse_2 -
         state.velocity_transverse_2 * magnetic_field_normal
     )
-    energy_flux = state.velocity_normal * (energy + total_pressure) - magnetic_field_normal * (
+    total_energy_flux = state.velocity_normal * (total_energy + total_pressure) - magnetic_field_normal * (
         state.velocity_normal * magnetic_field_normal + state.velocity_transverse_1 *
         state.magnetic_field_transverse_1 + state.velocity_transverse_2 * state.magnetic_field_transverse_2
     )
@@ -251,7 +251,7 @@ def compute_flux(
             momentum_2_flux,
             magnetic_field_transverse_1_flux,
             magnetic_field_transverse_2_flux,
-            energy_flux,
+            total_energy_flux,
         ],
     )
 
