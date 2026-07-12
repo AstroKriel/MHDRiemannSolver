@@ -8,8 +8,8 @@
 import unittest
 
 ## local
-from mhd_riemann_solver import mhd_state
-from mhd_riemann_solver.mhd_state import PrimitiveState
+from aegir import mhd_state
+from aegir.mhd_state import PrimitiveState
 
 ##
 ## === FIXTURES

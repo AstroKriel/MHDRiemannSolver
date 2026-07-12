@@ -29,7 +29,7 @@ uv sync --group demo
 Run the demo with:
 
 ```bash
-uv run demos/demo_rj2a.py
+uv run demos/demo_ryu_jones_2a.py
 ```
 
 ## Quick start
@@ -38,7 +38,7 @@ uv run demos/demo_rj2a.py
 
 ```python
 import numpy
-from mhd_riemann_solver import PrimitiveState, sample_profile, solve_riemann_problem
+from aegir import PrimitiveState, sample_profile, solve_riemann_problem
 
 left_state = PrimitiveState(
     density=1.08,
@@ -81,7 +81,7 @@ profile = sample_profile(
 ```bash
 MHDRiemannSolver/                        # project root
 ├── src/
-│   └── mhd_riemann_solver/               # package root (named after Ægir, Norse sea god)
+│   └── aegir/                            # package root (named after Ægir, Norse sea god)
 │       ├── __init__.py                   # public API
 │       ├── py.typed                      # marker for type checkers (PEP 561)
 │       ├── mhd_state.py                  # primitive state, wave speeds, conserved/flux conversions
@@ -91,7 +91,7 @@ MHDRiemannSolver/                        # project root
 │       ├── solve_rarefaction.py          # MHD rarefaction ODE solver
 │       └── exact_solution.py             # coupled 7-wave root-find; the main entry point
 ├── demos/
-│   └── demo_rj2a.py                      # solves and plots the Ryu & Jones (1995) 2a shock tube
+│   └── demo_ryu_jones_2a.py              # solves and plots the Ryu & Jones (1995) 2a shock tube
 ├── gallery/
 │   └── ryu_jones_2a.png
 ├── utests/

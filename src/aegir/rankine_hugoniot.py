@@ -5,8 +5,8 @@
 ##
 
 ## local
-from mhd_riemann_solver import mhd_state
-from mhd_riemann_solver.mhd_state import ConservedVector, PrimitiveState
+from aegir import mhd_state
+from aegir.mhd_state import ConservedVector, PrimitiveState
 
 ##
 ## === JUMP-CONDITION RESIDUAL

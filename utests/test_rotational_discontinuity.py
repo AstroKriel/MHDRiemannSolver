@@ -11,8 +11,8 @@ import unittest
 import numpy
 
 ## local
-from mhd_riemann_solver import rankine_hugoniot, rotational_discontinuity
-from mhd_riemann_solver.mhd_state import PrimitiveState
+from aegir import rankine_hugoniot, rotational_discontinuity
+from aegir.mhd_state import PrimitiveState
 
 ##
 ## === FIXTURES

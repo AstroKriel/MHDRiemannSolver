@@ -8,7 +8,7 @@
 import numpy
 
 ## local
-from mhd_riemann_solver.mhd_state import PrimitiveState
+from aegir.mhd_state import PrimitiveState
 
 ##
 ## === ROTATIONAL (ALFVEN) DISCONTINUITY

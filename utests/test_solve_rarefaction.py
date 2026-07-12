@@ -8,8 +8,8 @@
 import unittest
 
 ## local
-from mhd_riemann_solver import mhd_state, solve_rarefaction, solve_shock
-from mhd_riemann_solver.mhd_state import PrimitiveState, WaveFamily
+from aegir import mhd_state, solve_rarefaction, solve_shock
+from aegir.mhd_state import PrimitiveState, WaveFamily
 
 ##
 ## === FIXTURES

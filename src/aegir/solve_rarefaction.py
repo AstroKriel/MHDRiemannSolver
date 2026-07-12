@@ -13,8 +13,8 @@ from numpy.typing import NDArray
 from scipy.integrate import solve_ivp as scipy_solve_ivp
 
 ## local
-from mhd_riemann_solver import mhd_state
-from mhd_riemann_solver.mhd_state import PrimitiveState, WaveFamily
+from aegir import mhd_state
+from aegir.mhd_state import PrimitiveState, WaveFamily
 
 ##
 ## === TYPE ALIASES

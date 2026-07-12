@@ -1,6 +1,6 @@
 ## { SCRIPT
 
-## This file is part of the "MHDRiemannSolver" project (local alias: "aegir").
+## This file is part of the "aegir" (MHDRiemannSolver) project.
 ## Copyright (c) 2026 Neco Kriel.
 ## Licensed under the MIT License. See LICENSE for details.
 
@@ -13,8 +13,7 @@ from pathlib import Path
 import matplotlib.pyplot as mpl_plot
 import numpy
 
-from mhd_riemann_solver import PrimitiveState, sample_profile, solve_riemann_problem
-from mhd_riemann_solver import mhd_state
+from aegir import PrimitiveState, mhd_state, sample_profile, solve_riemann_problem
 
 ##
 ## === CONSTANTS

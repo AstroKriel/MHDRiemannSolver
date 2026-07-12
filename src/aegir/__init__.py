@@ -1,6 +1,6 @@
 ## { MODULE
 
-## This file is part of the "MHDRiemannSolver" project (local alias: "aegir").
+## This file is part of the "aegir" (MHDRiemannSolver) project.
 ## Copyright (c) 2026 Neco Kriel.
 ## Licensed under the MIT License. See LICENSE for details.
 
@@ -8,7 +8,7 @@
 ## === PUBLIC API
 ##
 
-from mhd_riemann_solver.exact_solution import (
+from aegir.exact_solution import (
     RiemannSolution,
     Wave,
     WavePropagation,
@@ -16,7 +16,7 @@ from mhd_riemann_solver.exact_solution import (
     sample_profile,
     solve_riemann_problem,
 )
-from mhd_riemann_solver.mhd_state import PrimitiveState
+from aegir.mhd_state import PrimitiveState
 
 __all__ = [
     "PrimitiveState",
